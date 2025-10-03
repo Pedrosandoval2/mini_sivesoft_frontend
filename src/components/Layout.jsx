@@ -20,8 +20,8 @@ export default function Layout({ children }) {
       icon: Package
     },
     {
-      path: '/inventory-sheets/new',
-      label: 'Nueva Hoja de Inventario',
+      path: '/inventory-sheets',
+      label: 'Hoja de Inventario',
       icon: FileText
     }
   ]
