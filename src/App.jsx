@@ -7,26 +7,30 @@ import { RoutesPages } from './routes/routesPages'
 const routesPublics = [
   {
     path: '/login',
-    component: lazy(() => import('./pages/LoginPage.jsx')),
+    component: lazy(() => import('./pages/login/LoginPage.jsx')),
   },
 ]
 
 const routesPrivates = [
   {
     path: '/select-company',
-    component: lazy(() => import('./pages/SelectCompanyPage.jsx')),
+    component: lazy(() => import('./pages/companySelect/SelectCompanyPage.jsx')),
   },
   {
     path: '/warehouses',
-    component: lazy(() => import('./pages/WarehousesPage.jsx')),
+    component: lazy(() => import('./pages/warehouse/WarehousesPage.jsx')),
   },
   {
     path: '/warehouses/new',
-    component: lazy(() => import('./pages/NewWarehousePage.jsx')),
+    component: lazy(() => import('./pages/warehouse/NewWarehousePage.jsx')),
+  },
+  {
+    path: '/inventory-sheets',
+    component: lazy(() => import('./pages/inventory/InventorySheetPage.jsx')),
   },
   {
     path: '/inventory-sheets/new',
-    component: lazy(() => import('./pages/NewInventorySheetPage.jsx')),
+    component: lazy(() => import('./pages/inventory/NewInventorySheetPage.jsx')),
   },
 ]
 
