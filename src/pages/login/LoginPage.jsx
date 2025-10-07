@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AlertCircle } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-// import { login } from '@/services/auth/login'
+import { login } from '@/services/auth/login'
 import { useState } from 'react'
 import { useUserStore } from '@/store/userStore'
 
@@ -14,15 +14,15 @@ export default function LoginPage() {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [loading, setLoading] = useState(false);
 
+
   const setUser = useUserStore((state) => state.setUser)
 
   const onSubmit = async (data) => {
     console.log("🚀 ~ onSubmit ~ data:", data)
     setLoading(true);
     try {
-      // const response = await login(data);
-      // setUser({ ...response.data.user, token: response.data.token });
-      setUser({ id: 1, name: "Usuario de Ejemplo", role: "user", token: "token-de-ejemplo" });
+      const response = await login(data);
+      setUser({ ...response.data.user, token: response.data.token });
     } catch (error) {
       console.log("Error de inicio de sesión");
       console.log(error);
