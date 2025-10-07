@@ -14,24 +14,40 @@ const routesPublics = [
 const routesPrivates = [
   {
     path: '/select-company',
-    component: lazy(() => import('./pages/companySelect/SelectCompanyPage.jsx')),
+    component: lazy(() => import('./pages/companySelect/SelectCompanyPage')),
   },
   {
     path: '/warehouses',
-    component: lazy(() => import('./pages/warehouse/WarehousesPage.jsx')),
+    component: lazy(() => import('./pages/warehouse/WarehousesPage')),
   },
   {
     path: '/warehouses/new',
-    component: lazy(() => import('./pages/warehouse/NewWarehousePage.jsx')),
+    component: lazy(() => import('./pages/warehouse/NewWarehousePage')),
   },
   {
     path: '/inventory-sheets',
-    component: lazy(() => import('./pages/inventory/InventorySheetPage.jsx')),
+    component: lazy(() => import('./pages/inventory/InventorySheetPage')),
   },
   {
     path: '/inventory-sheets/new',
-    component: lazy(() => import('./pages/inventory/NewInventorySheetPage.jsx')),
+    component: lazy(() => import('./pages/inventory/NewInventorySheetPage')),
   },
+  {
+    path: '/entidades',
+    component: lazy(() => import('./pages/entities/EntitiesPage')),
+  },
+  {
+    path: '/entidades/new',
+    component: lazy(() => import('./pages/entities/NewEntityPage')),
+  },
+  {
+    path: '/reportes',
+    component: lazy(() => import('./pages/reports/InventoryReportsPage')),
+  },
+  {
+    path: '/configuraciones',
+    component: lazy(() => import('./pages/configurations/ConfigurationsPage')),
+  }
 ]
 
 function App() {
