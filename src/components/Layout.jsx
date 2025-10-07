@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { LogOut, Package, Building2, FileText } from 'lucide-react'
+import { LogOut, Package, Building2, FileText, User, File } from 'lucide-react'
 import { useUserStore } from '@/store/userStore'
 
 export default function Layout({ children }) {
@@ -8,6 +8,7 @@ export default function Layout({ children }) {
   const location = useLocation()
   const isActive = location.pathname !== '/login' && location.pathname !== '/select-company'
   const clearUser = useUserStore((state) => state.clearUser)
+  const user = useUserStore((state) => state?.user)
 
   const handleLogout = () => {
     clearUser()
@@ -15,32 +16,49 @@ export default function Layout({ children }) {
 
   const navigationItems = [
     {
+      access: ['admin', 'manager', 'user'],
       path: '/warehouses',
       label: 'Almacenes',
       icon: Package
     },
     {
+      access: ['admin', 'manager', 'user'],
       path: '/inventory-sheets',
       label: 'Hoja de Inventario',
       icon: FileText
+    },
+    {
+      access: ['admin', 'manager', 'user'],
+      path: '/entidades',
+      label: 'Entidades',
+      icon: User
+    },
+    {
+      access: ['admin', 'manager', 'user'],
+      path: '/reportes',
+      label: 'Reportes',
+      icon: File
+    },
+    {
+      access: ['admin', 'manager'],
+      path: '/configuraciones',
+      label: 'Configuraciones',
+      icon: File
     }
   ]
 
   return (
     <>
       {isActive ? (
-        <div className="min-h-screen bg-gray-50">
+        <div className="bg-gray-50">
           <header className="bg-white shadow-sm border-b">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between items-center h-16">
-                <div className="flex items-center space-x-4">
-                  <Building2 className="h-8 w-8 text-blue-600" />
-                  <div>
-                    <h1 className="text-xl font-bold text-gray-900">
-                      Sistema de Gestión de Almacenes
-                    </h1>
+                <div className="items-center space-x-4 flex">
+                  <div className=' flex flex-col items-center justify-center'>
+                    <Building2 className="h-8 w-8 text-blue-600" />
                     <p className="text-sm text-gray-500">
-                      Usuario: {localStorage.getItem('currentUser') || 'Invitado'}
+                      User: {user?.nameEntity || 'Invitado'}
                     </p>
                   </div>
                 </div>
@@ -50,6 +68,7 @@ export default function Layout({ children }) {
                     {navigationItems.map((item) => {
                       const Icon = item.icon
                       const isActive = location.pathname === item.path
+                      if (!item.access.includes(user?.role)) return null
                       return (
                         <Button
                           key={item.path}
