@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ArrowLeft } from 'lucide-react'
 import { useForm } from 'react-hook-form'
+import { createWarehouse } from '@/services/warehouse/createWarehouse'
+import { updateWarehouse } from '@/services/warehouse/updateWarehouse'
+import { getErrorToEndpoints } from '@/utils/getErrorToEndpoints'
 
 
 export default function NewWarehousePage() {
@@ -16,38 +19,42 @@ export default function NewWarehousePage() {
 
 
   const { register, handleSubmit, formState: { errors } } = useForm({
-    defaultValues: warehouse
+    defaultValues: {
+      name: warehouse ? warehouse.name : '',
+      address: warehouse ? warehouse.address : '',
+      isActive: warehouse ? warehouse.isActive : false,
+    }
   })
 
-  // const owners = [
-  //   { id: '1', name: 'Juan Pérez' },
-  //   { id: '2', name: 'María García' },
-  //   { id: '3', name: 'Carlos López' },
-  //   { id: '4', name: 'Ana Rodríguez' },
-  //   { id: '5', name: 'Luis Martínez' }
-  // ]
+  // Instalar notificaciones de exitoso o error
 
+  const onSubmit = async(data) => {
+  console.log("🚀 ~ onSubmit ~ data:", data)
 
+    const body = {
+      name: data.name,
+      address: data.address,
+      isActive: data.isActive
+    }
 
-  const onSubmit = (data) => {
-    console.log('Formulario enviado:', data)
-    // Aquí iría la lógica para enviar los datos al backend
-    navigate('/warehouses')
-  }
-
-  const handleCancel = () => {
-    navigate('/warehouses')
+    try {
+      const response = warehouse ? await updateWarehouse(warehouse.id, body) : await createWarehouse(body);
+      getErrorToEndpoints(response.data);
+      navigate('/warehouses')
+    } catch (error) {
+      console.error("Error al crear el almacén:", error)
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className=" bg-gray-50 p-6">
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" onClick={handleCancel}>
+          <Button variant="outline" size="sm" onClick={() => navigate('/warehouses')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver
           </Button>
-          <h1 className="text-2xl font-bold">Nuevo Almacén</h1>
+          <h1 className="text-2xl font-bold">{warehouse ? 'Editar Almacén' : 'Nuevo Almacén'}</h1>
         </div>
 
         <Card>
@@ -81,23 +88,6 @@ export default function NewWarehousePage() {
                 {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>}
               </div>
 
-              {/* <div className="space-y-2">
-                <Label htmlFor="owner">Propietario *</Label>
-                <Select {...register('owner', { required: 'El propietario es obligatorio' })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione un propietario" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {owners.map((owner) => (
-                      <SelectItem key={owner.id} value={owner.id}>
-                        {owner.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.owner && <p className="text-red-500 text-sm mt-1">{errors.owner.message}</p>}
-              </div> */}
-
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="isActive"
@@ -110,9 +100,9 @@ export default function NewWarehousePage() {
 
               <div className="flex space-x-4 pt-4">
                 <Button type="submit" className="flex-1">
-                  Guardar
+                  {warehouse ? 'Actualizar' : 'Crear'}
                 </Button>
-                <Button type="button" variant="outline" className="flex-1" onClick={handleCancel}>
+                <Button type="button" variant="outline" className="flex-1" onClick={() => navigate('/warehouses')}>
                   Cancelar
                 </Button>
               </div>
