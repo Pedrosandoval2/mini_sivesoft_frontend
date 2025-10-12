@@ -1,72 +1,57 @@
 import './App.css'
 import { lazy, Suspense } from 'react'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import { useUserStore } from '@/store/userStore'
-import { RoutesPages } from './routes/routesPages'
+import Layout from '@/components/Layout'
 
-const routesPublics = [
-  {
-    path: '/login',
-    component: lazy(() => import('./pages/login/LoginPage.jsx')),
-  },
-]
-
-const routesPrivates = [
-  {
-    path: '/select-company',
-    component: lazy(() => import('./pages/companySelect/SelectCompanyPage')),
-  },
-  {
-    path: '/warehouses',
-    component: lazy(() => import('./pages/warehouse/WarehousesPage')),
-  },
-  {
-    path: '/warehouses/new',
-    component: lazy(() => import('./pages/warehouse/NewWarehousePage')),
-  },
-  {
-    path: '/inventory-sheets',
-    component: lazy(() => import('./pages/inventory/InventorySheetPage')),
-  },
-  {
-    path: '/inventory-sheets/new',
-    component: lazy(() => import('./pages/inventory/NewInventorySheetPage')),
-  },
-  {
-    path: '/entidades',
-    component: lazy(() => import('./pages/entities/EntitiesPage')),
-  },
-  {
-    path: '/entidades/new',
-    component: lazy(() => import('./pages/entities/NewEntityPage')),
-  },
-  {
-    path: '/reportes',
-    component: lazy(() => import('./pages/reports/InventoryReportsPage')),
-  },
-  {
-    path: '/configuraciones',
-    component: lazy(() => import('./pages/configurations/ConfigurationsPage')),
-  }
-]
+// Importación lazy de componentes
+const LoginPage = lazy(() => import('./pages/login/LoginPage.jsx'))
+const HomePage = lazy(() => import('./pages/home/HomePage'))
+const SelectCompanyPage = lazy(() => import('./pages/companySelect/SelectCompanyPage'))
+const WarehousesPage = lazy(() => import('./pages/warehouse/WarehousesPage'))
+const NewWarehousePage = lazy(() => import('./pages/warehouse/NewWarehousePage'))
+const InventorySheetPage = lazy(() => import('./pages/inventory/InventorySheetPage'))
+const NewInventorySheetPage = lazy(() => import('./pages/inventory/NewInventorySheetPage'))
+const EntitiesPage = lazy(() => import('./pages/entities/EntitiesPage'))
+const NewEntityPage = lazy(() => import('./pages/entities/NewEntityPage'))
+const InventoryReportsPage = lazy(() => import('./pages/reports/InventoryReportsPage'))
+const ConfigurationsPage = lazy(() => import('./pages/configurations/ConfigurationsPage'))
 
 function App() {
   const user = useUserStore((state) => state.user)
-
-  const routes = user?.token ? routesPrivates : routesPublics
-  const typeRoutes = user?.token ? 'private' : 'public'
+  const hasToken = !!user?.token
 
   return (
-    <Suspense
-      fallback={
-        <div className="flex justify-center items-center h-screen">
-          Cargando...
-        </div>
-      }
-    >
-      <ToastContainer />
-      <RoutesPages routes={routes} typeRoutes={typeRoutes} />
-    </Suspense>
+    <Router>
+      <Suspense fallback={<div className="flex justify-center items-center h-screen">Cargando...</div>}>
+        <ToastContainer />
+        
+        {!hasToken ? (
+          // Sin token: Solo mostrar login
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        ) : (
+          // Con token: Mostrar todas las rutas privadas con Layout
+          <Layout isActive={true}>
+            <Routes>
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/select-company" element={<SelectCompanyPage />} />
+              <Route path="/warehouses" element={<WarehousesPage />} />
+              <Route path="/warehouses/new" element={<NewWarehousePage />} />
+              <Route path="/inventory-sheets" element={<InventorySheetPage />} />
+              <Route path="/inventory-sheets/new" element={<NewInventorySheetPage />} />
+              <Route path="/entidades" element={<EntitiesPage />} />
+              <Route path="/entidades/new" element={<NewEntityPage />} />
+              <Route path="/reportes" element={<InventoryReportsPage />} />
+              <Route path="/configuraciones" element={<ConfigurationsPage />} />
+            </Routes>
+          </Layout>
+        )}
+      </Suspense>
+    </Router>
   )
 }
 

@@ -4,20 +4,26 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { changeTenant } from '@/services/switch-bussiness/changeTenant'
+import { useUserStore } from '@/store/userStore'
 
 export default function SelectCompanyPage() {
   const [selectedCompany, setSelectedCompany] = useState('')
+  const setUser = useUserStore((state) => state.setUser)
   const companies = [
-    { id: 'company1', name: 'Empresa 1' },
-    { id: 'company2', name: 'Empresa 2' },
-    { id: 'company3', name: 'Empresa 3' },
+    { id: 'empresa1', name: 'Empresa 1' },
+    { id: 'empresa2', name: 'Empresa 2' },
+    { id: 'empresa3', name: 'Empresa 3' },
   ]
   const navigate = useNavigate()
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (selectedCompany) {
-      // localStorage.setItem('selectedCompany', selectedCompany)
-      // Aquí iría el zustand
+      const response = await changeTenant({ tenantId: selectedCompany })
+      console.log("🚀 ~ handleConfirm ~ response:", response)
+      if (response.status === 201){
+        setUser({...response.data.user, token: response.data.token })
+      }
       navigate('/warehouses')
     }
   }

@@ -31,6 +31,45 @@ export const dataWarehouse = {
     totalPages: 1
 }
 
+export const dataWarehousesByUser = [
+    {
+        "id": 1,
+        "name": "almacén 1",
+        "address": "Av girón 34",
+        "serieWarehouse": 1,
+        "isActive": true,
+        "createdAt": "2025-10-02T02:22:19.321Z",
+        "updatedAt": "2025-10-03T03:58:31.593Z"
+    },
+    {
+        "id": 2,
+        "name": "almacén 2",
+        "address": "Av 28 de julio",
+        "serieWarehouse": 2,
+        "isActive": true,
+        "createdAt": "2025-10-02T21:24:39.988Z",
+        "updatedAt": "2025-10-03T03:58:33.569Z"
+    },
+    {
+        "id": 3,
+        "name": "almacén 3 update",
+        "address": "Av 23 de julio",
+        "serieWarehouse": 3,
+        "isActive": true,
+        "createdAt": "2025-10-02T21:24:48.710Z",
+        "updatedAt": "2025-10-03T03:58:34.849Z"
+    },
+    {
+        "id": 4,
+        "name": "almacén 4",
+        "address": "Av 25 de julio",
+        "serieWarehouse": 4,
+        "isActive": true,
+        "createdAt": "2025-10-03T03:42:12.798Z",
+        "updatedAt": "2025-10-03T04:06:07.460Z"
+    }
+]
+
 export const dataInventorySheets = {
     data: [
         {
@@ -48,9 +87,20 @@ export const dataInventorySheets = {
                     address: "MZ P4 LT22",
                     phone: "933288124"
                 },
-                role: "manager"
+                role: "manager",
+                warehouses: [
+                    {
+                        id: 1,
+                        name: "almacén 1",
+                        address: "Av girón 34",
+                        serieWarehouse: 1,
+                        isActive: true,
+                        createdAt: "2025-10-02T02:22:19.321Z",
+                        updatedAt: "2025-10-03T03:58:31.593Z"
+                    },
+                ]
             },
-            state: "registered",
+            state: "registrado",
             warehouse: {
                 id: 6,
                 name: "almacén 6",
@@ -83,10 +133,120 @@ export const dataInventorySheets = {
             ],
             createdAt: "2025-10-03T04:32:26.494Z",
             updatedAt: "2025-10-03T04:36:32.000Z"
+        },
+        {
+            id: 13,
+            emissionDate: "2025-10-01T05:00:00.000Z",
+            serie: "INV",
+            user: {
+                id: 9,
+                username: "pedro.sandoval",
+                entityRelation: {
+                    id: 2,
+                    name: "Pedro Sandoval",
+                    docType: "DNI",
+                    docNumber: "72698533",
+                    address: "MZ P4 LT22",
+                    phone: "933288124"
+                },
+                role: "manager",
+                warehouses: [
+                    {
+                        id: 1,
+                        name: "almacén 1",
+                        address: "Av girón 34",
+                        serieWarehouse: 1,
+                        isActive: true,
+                        createdAt: "2025-10-02T02:22:19.321Z",
+                        updatedAt: "2025-10-03T03:58:31.593Z"
+                    },
+                    {
+                        id: 2,
+                        name: "almacén 2",
+                        address: "Av 28 de julio",
+                        serieWarehouse: 2,
+                        isActive: true,
+                        createdAt: "2025-10-02T21:24:39.988Z",
+                        updatedAt: "2025-10-03T03:58:33.569Z"
+                    },
+                    {
+                        id: 3,
+                        name: "almacén 3 update",
+                        address: "Av 23 de julio",
+                        serieWarehouse: 3,
+                        isActive: true,
+                        createdAt: "2025-10-02T21:24:48.710Z",
+                        updatedAt: "2025-10-03T03:58:34.849Z"
+                    },
+                    {
+                        id: 4,
+                        name: "almacén 4",
+                        address: "Av 25 de julio",
+                        serieWarehouse: 4,
+                        isActive: true,
+                        createdAt: "2025-10-03T03:42:12.798Z",
+                        updatedAt: "2025-10-03T04:06:07.460Z"
+                    }
+                ]
+            },
+            state: "registrado",
+            warehouse: {
+                id: 3,
+                name: "almacén 3 update",
+                address: "Av 23 de julio",
+                serieWarehouse: 3,
+                isActive: true
+            },
+            details: [
+                {
+                    id: 43,
+                    productId: "WATER-CIELO-3L",
+                    quantity: "30.00",
+                    unit: "unidades",
+                    price: "30.00"
+                },
+                {
+                    id: 44,
+                    productId: "WATER-CIELO-1L",
+                    quantity: "10.00",
+                    unit: "unidades",
+                    price: "10.00"
+                },
+                {
+                    id: 45,
+                    productId: "WATER-CIELO-2L",
+                    quantity: "20.00",
+                    unit: "unidades",
+                    price: "20.00"
+                }
+            ],
+            createdAt: "2025-10-03T20:44:47.739Z",
+            updatedAt: "2025-10-03T20:44:47.739Z"
         }
     ],
     total: 1,
     page: 1,
     limit: 10,
     totalPages: 1
+}
+
+export const entities = {
+    data: [
+        {
+            id: 1,
+            name: "Pedro",
+            docType: "DNI",
+            docNumber: "72698534",
+            address: "MZ P4 LT22",
+            phone: "933288124",
+        },
+        {
+            id: 2,
+            name: "Pedro Sandoval",
+            docType: "DNI",
+            docNumber: "72698533",
+            address: "MZ P4 LT22",
+            phone: "933288124",
+        },
+    ]
 }

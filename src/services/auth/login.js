@@ -11,6 +11,5 @@
 import axiosInstance from "@/api/axios.config";
 
 export const login = (params) => {
-    console.log("🚀 ~ login ~ params:", params)
     return axiosInstance.post(`/auth/login`, params);
 }

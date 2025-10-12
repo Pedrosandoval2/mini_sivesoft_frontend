@@ -7,22 +7,34 @@ import { AlertCircle } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { login } from '@/services/auth/login'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useUserStore } from '@/store/userStore'
+import { getErrorToEndpoints } from '@/utils/getErrorToEndpoints'
 
 export default function LoginPage() {
 
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
 
   const setUser = useUserStore((state) => state.setUser)
 
   const onSubmit = async (data) => {
-    console.log("🚀 ~ onSubmit ~ data:", data)
     setLoading(true);
     try {
       const response = await login(data);
-      setUser({ ...response.data.user, token: response.data.token });
+      getErrorToEndpoints(response);
+      
+      const userData = { ...response.data.user, token: response.data.token };
+      setUser(userData);
+
+      // Redirigir según tenantIds
+      if (userData?.tenantIds && userData.tenantIds.length > 1) {
+        navigate('/select-company');
+      } else {
+        navigate('/home');
+      }
+
     } catch (error) {
       console.log("Error de inicio de sesión");
       console.log(error);

@@ -16,33 +16,23 @@ export default function Layout({ children }) {
 
   const navigationItems = [
     {
-      access: ['admin', 'manager', 'user'],
       path: '/warehouses',
       label: 'Almacenes',
       icon: Package
     },
     {
-      access: ['admin', 'manager', 'user'],
       path: '/inventory-sheets',
       label: 'Hoja de Inventario',
       icon: FileText
     },
     {
-      access: ['admin', 'manager', 'user'],
       path: '/entidades',
       label: 'Entidades',
       icon: User
     },
     {
-      access: ['admin', 'manager', 'user'],
       path: '/reportes',
       label: 'Reportes',
-      icon: File
-    },
-    {
-      access: ['admin', 'manager'],
-      path: '/configuraciones',
-      label: 'Configuraciones',
       icon: File
     }
   ]
@@ -68,7 +58,6 @@ export default function Layout({ children }) {
                     {navigationItems.map((item) => {
                       const Icon = item.icon
                       const isActive = location.pathname === item.path
-                      if (!item.access.includes(user?.role)) return null
                       return (
                         <Button
                           key={item.path}
