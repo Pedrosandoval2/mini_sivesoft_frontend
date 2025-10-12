@@ -35,9 +35,8 @@ export default function LoginPage() {
         navigate('/home');
       }
 
-    } catch (error) {
-      console.log("Error de inicio de sesión");
-      console.log(error);
+    } catch {
+      // Error de inicio de sesión
     } finally {
       setLoading(false);
     }

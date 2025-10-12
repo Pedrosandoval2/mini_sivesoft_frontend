@@ -63,8 +63,8 @@ export default function NewEntityPage() {
             const response = entity ? await updateEntity(entity.id, body) : await createEntity(body);
             getErrorToEndpoints(response.data);
             navigation('/entidades');
-        } catch (error) {
-            console.error("Error creating/updating entity:", error);
+        } catch {
+            // Error creating/updating entity
         }
     }
 

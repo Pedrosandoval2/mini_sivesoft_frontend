@@ -20,7 +20,6 @@ export default function SelectCompanyPage() {
   const handleConfirm = async () => {
     if (selectedCompany) {
       const response = await changeTenant({ tenantId: selectedCompany })
-      console.log("🚀 ~ handleConfirm ~ response:", response)
       if (response.status === 201){
         setUser({...response.data.user, token: response.data.token })
       }

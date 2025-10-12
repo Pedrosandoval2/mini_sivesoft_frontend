@@ -19,8 +19,8 @@ export const useGetWarehouses = () => {
             setTotal(response.data.total)
             setTotalPages(response.data.totalPages)
 
-        } catch (error) {
-            console.error("Error fetching warehouses:", error)
+        } catch {
+            // Error fetching warehouses
         } finally {
             setIsLoading(false)
         }

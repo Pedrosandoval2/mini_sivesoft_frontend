@@ -8,8 +8,8 @@ export const useGetWarehousesByUser = () => {
         try {
             const response = await getWarehousesByUser()
             setData(response.data)
-        } catch (error) {
-            console.error("Error fetching warehouses:", error)
+        } catch {
+            // Error fetching warehouses
         }
     }
 

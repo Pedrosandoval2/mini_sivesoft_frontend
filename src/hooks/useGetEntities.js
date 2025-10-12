@@ -16,8 +16,8 @@ export const useGetEntities = () => {
             setData(response.data.data);
             setTotal(response.data.total);
             setTotalPages(response.data.totalPages);
-        } catch (error) {
-            console.error("Error fetching entities:", error);
+        } catch {
+            // Error fetching entities
         } finally {
             setIsLoading(false);
         }

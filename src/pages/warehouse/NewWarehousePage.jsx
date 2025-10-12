@@ -29,7 +29,6 @@ export default function NewWarehousePage() {
   // Instalar notificaciones de exitoso o error
 
   const onSubmit = async(data) => {
-  console.log("🚀 ~ onSubmit ~ data:", data)
 
     const body = {
       name: data.name,
@@ -41,8 +40,8 @@ export default function NewWarehousePage() {
       const response = warehouse ? await updateWarehouse(warehouse.id, body) : await createWarehouse(body);
       getErrorToEndpoints(response.data);
       navigate('/warehouses')
-    } catch (error) {
-      console.error("Error al crear el almacén:", error)
+    } catch {
+      // Error al crear el almacén
     }
   }
 

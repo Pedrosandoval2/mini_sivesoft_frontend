@@ -16,8 +16,8 @@ export const useGetInventorySheets = () => {
             setData(response.data.data);
             setTotal(response.data.total);
             setTotalPages(response.data.totalPages);
-        } catch (error) {
-            console.error("Error fetching inventory sheets:", error);
+        } catch {
+            // Error fetching inventory sheets
         } finally {
             setIsLoading(false);
         }
