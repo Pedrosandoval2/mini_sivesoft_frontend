@@ -10,6 +10,7 @@ import { useUserStore } from '@/store/userStore'
 export default function SelectCompanyPage() {
   const [selectedCompany, setSelectedCompany] = useState('')
   const setUser = useUserStore((state) => state.setUser)
+  const user = useUserStore((state) => state.user)
   const companies = [
     { id: 'empresa1', name: 'Empresa 1' },
     { id: 'empresa2', name: 'Empresa 2' },
@@ -46,9 +47,9 @@ export default function SelectCompanyPage() {
                 <SelectValue placeholder="Seleccione una empresa" />
               </SelectTrigger>
               <SelectContent>
-                {companies.map((company) => (
-                  <SelectItem key={company.id} value={company.id}>
-                    {company.name}
+                {user?.tenantIds?.map((company) => (
+                  <SelectItem key={company} value={company}>
+                    {company.toUpperCase()}
                   </SelectItem>
                 ))}
               </SelectContent>
