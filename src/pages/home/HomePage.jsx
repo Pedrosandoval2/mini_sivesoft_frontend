@@ -2,7 +2,7 @@
 export default function HomePage() {
 
     return (
-        <div className="p-6">
+        <div className="p-6 mt-52">
             <div className="">
                 {/* Header de bienvenida */}
                 <div className="mb-12 text-center">

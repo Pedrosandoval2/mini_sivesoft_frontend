@@ -11,11 +11,7 @@ export default function SelectCompanyPage() {
   const [selectedCompany, setSelectedCompany] = useState('')
   const setUser = useUserStore((state) => state.setUser)
   const user = useUserStore((state) => state.user)
-  const companies = [
-    { id: 'empresa1', name: 'Empresa 1' },
-    { id: 'empresa2', name: 'Empresa 2' },
-    { id: 'empresa3', name: 'Empresa 3' },
-  ]
+
   const navigate = useNavigate()
 
   const handleConfirm = async () => {
