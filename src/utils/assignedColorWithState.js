@@ -1,7 +1,5 @@
-import { transformState } from "./transformState"
-
 export const assignedColorWithState = (state) => {
-    switch (transformState(state)) {
+    switch (state) {
         case 'registrado':
             return 'bg-amber-300 text-black'
         case 'aprobado':
