@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -7,10 +7,12 @@ import { Search, Download, ChevronDown, ChevronUp, ChevronLeft, ChevronRight} fr
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import * as XLSX from "xlsx"
-import { useGetInventorySheets } from "@/hooks/useGetInventorySheets"
-import { useGetWarehouses } from "@/hooks/useGetWarehouses"
-import { useGetEntities } from "@/hooks/useGetEntities"
+import { useInventorySheets } from "@/hooks/queries/useInventorySheets"
+import { useWarehouses } from "@/hooks/queries/useWarehouses"
+import { useEntities } from "@/hooks/queries/useEntities"
 import { formatNumberWithZero } from "@/utils/formatNumberWithZero"
+import { assignedColorWithState } from "@/utils/assignedColorWithState"
+import { toast } from "react-toastify"
 
 export default function InventoryReportsPage() {
     const [warehouseId, setWarehouseId] = useState("")
@@ -19,10 +21,28 @@ export default function InventoryReportsPage() {
     const [dateTo, setDateTo] = useState("")
     const [showResults, setShowResults] = useState(false)
     const [expandedRows, setExpandedRows] = useState(new Set())
+    const [page, setPage] = useState(1)
+    const limit = 20
 
-    const { data: inventorySheets, fetchInventorySheets, page, totalPages, isLoading, setPage } = useGetInventorySheets()
-    const { data: warehouses, fetchWarehouses } = useGetWarehouses()
-    const { data: entities, fetchEntities } = useGetEntities()
+    const { data: inventorySheetsData, isLoading: loadingSheets } = useInventorySheets({
+        page,
+        limit,
+        search: "",
+        entity,
+        warehouseId,
+        dateFrom,
+        dateTo
+    }, {
+        enabled: showResults // Solo ejecutar query cuando showResults sea true
+    })
+
+    const { data: warehousesData } = useWarehouses({ page: 1, limit: 100, search: "" })
+    const { data: entitiesData } = useEntities({ page: 1, limit: 100, search: "" })
+
+    const inventorySheets = inventorySheetsData?.data || []
+    const totalPages = inventorySheetsData?.totalPages || 1
+    const warehouses = warehousesData?.data || []
+    const entities = entitiesData?.data || []
 
     const toggleRow = (id) => {
         const newExpandedRows = new Set(expandedRows)
@@ -34,14 +54,9 @@ export default function InventoryReportsPage() {
         setExpandedRows(newExpandedRows)
     }
 
-    useEffect(() => {
-        fetchWarehouses({ page: 1, limit: 100 })
-        fetchEntities({ page: 1, limit: 100 })
-    }, [])
-
     const handleShow = () => {
-        fetchInventorySheets({ page: 1, limit: 20, entity, warehouseId, dateFrom, dateTo })
         setShowResults(true)
+        setPage(1)
         // Here you would fetch data from API based on filters
     }
 
@@ -52,9 +67,14 @@ export default function InventoryReportsPage() {
         setDateTo("")
         setShowResults(false)
         setExpandedRows(new Set())
+        setPage(1)
     }
 
     const handleExport = () => {
+         if (inventorySheets.length === 0) {
+            toast.info("No hay datos para exportar")
+            return
+        }
         const wb = XLSX.utils.book_new()
 
         const summaryData = inventorySheets.map((sheet) => ({
@@ -70,7 +90,7 @@ export default function InventoryReportsPage() {
             Teléfono: sheet.user?.entityRelation?.phone,
             Usuario: sheet.user?.username,
             Rol: sheet.user?.role,
-            Estado: getStateLabel(sheet.state),
+            Estado: sheet.state,
             "Fecha Creación": new Date(sheet.createdAt).toLocaleString("es-PE"),
             "Última Actualización": new Date(sheet.updatedAt).toLocaleString("es-PE"),
         }))
@@ -155,7 +175,7 @@ export default function InventoryReportsPage() {
                 "N° Documento": sheet?.user?.entityRelation?.docNumber,
                 "Dirección Responsable": sheet?.user?.entityRelation?.address,
                 "Teléfono Responsable": sheet?.user?.entityRelation?.phone,
-                Estado: getStateLabel(sheet.state),
+                Estado: sheet.state,
                 "Total Items": sheet.details.length,
                 "Cantidad Total": totalQuantity.toFixed(2),
                 "Valor Total": totalValue.toFixed(2),
@@ -182,32 +202,6 @@ export default function InventoryReportsPage() {
         link.click()
         document.body.removeChild(link)
         URL.revokeObjectURL(url)
-    }
-
-    const getStateColor = (state) => {
-        switch (state) {
-            case "registered":
-                return "bg-yellow-400 text-black hover:bg-yellow-500"
-            case "pending":
-                return "bg-orange-400 text-white hover:bg-orange-500"
-            case "approved":
-                return "bg-green-500 text-white hover:bg-green-600"
-            default:
-                return "bg-gray-400 text-white hover:bg-gray-500"
-        }
-    }
-
-    const getStateLabel = (state) => {
-        switch (state) {
-            case "registered":
-                return "REGISTRADO"
-            case "pending":
-                return "PENDIENTE"
-            case "approved":
-                return "APROBADO"
-            default:
-                return state.toUpperCase()
-        }
     }
 
     const formatDate = (dateString) => {
@@ -341,7 +335,7 @@ export default function InventoryReportsPage() {
                                                 <TableCell>{sheet.warehouse.serieWarehouse}</TableCell>
                                                 <TableCell>{sheet.user?.entityRelation?.name}</TableCell>
                                                 <TableCell>
-                                                    <Badge className={getStateColor(sheet.state)}>{getStateLabel(sheet.state)}</Badge>
+                                                    <Badge className={assignedColorWithState(sheet.state)}>{sheet.state}</Badge>
                                                 </TableCell>
                                                 <TableCell>{sheet.user.username}</TableCell>
                                             </TableRow>
@@ -409,7 +403,7 @@ export default function InventoryReportsPage() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => setPage(Math.max(1, page - 1))}
-                                        disabled={isLoading || page === 1}
+                                        disabled={loadingSheets || page === 1}
                                     >
                                         <ChevronLeft className="h-4 w-4" />
                                     </Button>
@@ -422,7 +416,7 @@ export default function InventoryReportsPage() {
                                         variant="outline"
                                         size="sm"
                                         onClick={() => setPage(Math.min(totalPages, page + 1))}
-                                        disabled={isLoading || page === totalPages}
+                                        disabled={loadingSheets || page === totalPages}
                                     >
                                         <ChevronRight className="h-4 w-4" />
                                     </Button>
