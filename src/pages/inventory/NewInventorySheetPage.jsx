@@ -8,11 +8,9 @@ import { ChevronDown, Plus, ArrowLeft, Trash2 } from 'lucide-react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { useUserStore } from '@/store/userStore';
 import { formatNumberWithZero } from '@/utils/formatNumberWithZero';
-import { useGetWarehousesByUser } from '@/hooks/useGetWarehousesByUser';
-import { createInventorySheets } from '@/services/inventory/createInventorySheets';
-import { updateInventorySheets } from '@/services/inventory/updateInventorySheets';
-import { getErrorToEndpoints } from '@/utils/getErrorToEndpoints';
-import { useEffect, useState, useMemo } from 'react';
+import { useWarehousesByUser } from '@/hooks/queries/useWarehousesByUser';
+import { useCreateInventorySheet, useUpdateInventorySheet } from '@/hooks/mutations/useInventorySheetMutations';
+import { useState, useMemo } from 'react';
 
 const transformInitialData = (data) => {
   return {
@@ -32,8 +30,15 @@ const transformInitialData = (data) => {
 }
 
 export default function NewInventorySheetPage() {
-  const nameEntity = useUserStore((state) => state.user.nameEntity)
-  const { data, fetchWarehousesByUser } = useGetWarehousesByUser();
+  const name = useUserStore((state) => state.user)
+
+
+  // ✨ React Query para obtener almacenes del usuario
+  const { data: warehouses, isLoading: loadingWarehouses } = useWarehousesByUser();
+  
+  // ✨ React Query mutations para crear/actualizar hojas de inventario
+  const createMutation = useCreateInventorySheet()
+  const updateMutation = useUpdateInventorySheet()
 
   const [isItemsOpen, setIsItemsOpen] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(true)
@@ -64,21 +69,22 @@ export default function NewInventorySheetPage() {
   const warehouseSelected = watch("sheet.warehouseId");
 
   const warehouseSerie = useMemo(() => {
-    if (!warehouseSelected || !data?.length) return "0000";
-    return data.find(w => w?.id === Number(warehouseSelected))?.serieWarehouse || "0000";
-  }, [warehouseSelected, data]);
+    if (!warehouseSelected || !warehouses?.length) return "0000";
+    return warehouses.find(w => w?.id === Number(warehouseSelected))?.serieWarehouse || "0000";
+  }, [warehouseSelected, warehouses]);
 
   const handleCancel = () => {
     navigate('/inventory-sheets')
   }
 
   const onSubmit = async (data) => {
+    console.log("🚀 ~ onSubmit ~ data:", data)
     const body = {
       sheet: {
         warehouseId: Number(data.sheet.warehouseId),
         emissionDate: data.sheet.emissionDate,
         state: data.sheet.state,
-        serie: "INV"
+        serie: "INV",
       },
       details: data.details.map(item => ({
         productId: item.productId,
@@ -88,16 +94,27 @@ export default function NewInventorySheetPage() {
       }))
     }
 
-    const response = inventorySheet ? await createInventorySheets(body) : await updateInventorySheets(inventorySheet.id, body);
-    getErrorToEndpoints(response.data);
-    navigate('/inventory-sheets')
+    try {
+      if (inventorySheet) {
+        // Actualizar hoja de inventario existente
+        await updateMutation.mutateAsync({ id: inventorySheet.id, data: body })
+      } else {
+        // Crear nueva hoja de inventario
+        await createMutation.mutateAsync(body)
+      }
+      // Navegar después de éxito (los toast se manejan en el mutation)
+      navigate('/inventory-sheets')
+    } catch {
+      // El error ya se maneja en el mutation
+    }
   }
 
-  useEffect(() => {
-    fetchWarehousesByUser()
-    // fetchEntities({page: 1, limit: });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // Determinar si está cargando alguna de las mutaciones
+  const isLoading = createMutation.isPending || updateMutation.isPending
+  
+  // Texto del botón según el modo (crear/editar)
+  const submitButtonText = inventorySheet ? 'Actualizar Hoja' : 'Guardar Hoja'
+  const loadingButtonText = inventorySheet ? 'Actualizando...' : 'Guardando...'
 
   return (
     <div className=" bg-gray-50 p-6">
@@ -133,13 +150,17 @@ export default function NewInventorySheetPage() {
                               <SelectValue placeholder="Seleccionar almacén..." />
                             </SelectTrigger>
                             <SelectContent>
-                              {data?.map((warehouse) => {
-                                return (
-                                  <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
-                                    {warehouse.name}
-                                  </SelectItem>
-                                )
-                              })}
+                              {loadingWarehouses ? (
+                                <SelectItem value="loading" disabled>Cargando almacenes...</SelectItem>
+                              ) : (
+                                warehouses?.map((warehouse) => {
+                                  return (
+                                    <SelectItem key={warehouse.id} value={warehouse.id.toString()}>
+                                      {warehouse.name}
+                                    </SelectItem>
+                                  )
+                                })
+                              )}
                             </SelectContent>
                           </Select>
                         )}
@@ -156,13 +177,35 @@ export default function NewInventorySheetPage() {
                   <div className='flex gap-4'>
                     <div className="flex-1">
                       <Label htmlFor="status" className="mb-2">Estado</Label>
+                      {/* <Controller
+                    name="ownerId"
+                    control={control}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger id="ownerId" className="w-full">
+                          <SelectValue placeholder="Seleccionar Propietario" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {entitiesLoading ? (
+                            <div className="p-4 text-center text-gray-500">Cargando...</div>
+                          ) : (
+                            data.data?.map((owner) => (
+                              <SelectItem key={owner.id} value={String(owner.id)}>
+                                {owner.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  /> */}
                       <Controller
                         control={control}
                         name='sheet.state'
                         render={({ field }) => (
                           <Select onValueChange={field.onChange} value={field.value}>
-                            <SelectTrigger className='w-full'>
-                              <SelectValue placeholder="Seleccionar estado" />
+                            <SelectTrigger id="sheet.state" className='w-full'>
+                              <SelectValue placeholder="Seleccionar estado"/>
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="pendiente">Pendiente</SelectItem>
@@ -185,7 +228,7 @@ export default function NewInventorySheetPage() {
                   <div className="w-[49%] mt-6">
                     <Label htmlFor="responsibleEntity" className="mb-2">Entidad Responsable</Label>
                     <div id="responsibleEntity" className="border p-[6.5px] rounded-md">
-                      <p className='ml-2.5 text-[#8a8e91] text-[14.5px]'>{inventorySheet?.user?.entityRelation?.name || nameEntity}</p>
+                      <p className='ml-2.5 text-[#8a8e91] text-[14.5px]'>{inventorySheet?.user?.entityRelation?.name || name.nameEntity || 'Role Admin'}</p>
                     </div>
                   </div>
                 </div>
@@ -302,10 +345,29 @@ export default function NewInventorySheetPage() {
           </div>
 
           <div className="mt-8 flex justify-end gap-3">
-            <Button variant="secondary" className="bg-gray-400 text-white hover:bg-gray-500" onClick={handleCancel}>
+            <Button 
+              type="button"
+              variant="secondary" 
+              className="bg-gray-400 text-white hover:bg-gray-500" 
+              onClick={handleCancel}
+              disabled={isLoading}
+            >
               Cancelar
             </Button>
-            <Button className="bg-blue-600 text-white hover:bg-blue-700">Guardar</Button>
+            <Button 
+              type="submit"
+              className="bg-blue-600 text-white hover:bg-blue-700"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  {loadingButtonText}
+                </>
+              ) : (
+                submitButtonText
+              )}
+            </Button>
           </div>
         </form>
       </div>

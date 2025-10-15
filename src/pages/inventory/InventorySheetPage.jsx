@@ -3,18 +3,27 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { Plus, Search, ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react'
 
 import { useUserStore } from '@/store/userStore'
-import { useGetInventorySheets } from '@/hooks/useGetInventorySheets'
+import { useInventorySheets } from '@/hooks/queries/useInventorySheets'
+import { useDeleteInventorySheet } from '@/hooks/mutations/useInventorySheetMutations'
 import { useDebounce } from '@/hooks/useDebounce'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { formatDate } from '@/utils/formatDate'
 import { formatNumberWithZero } from '@/utils/formatNumberWithZero'
-import { useEffectOncePerDeps } from '@/hooks/useEffectOncePerDeps'
 import { assignedColorWithState } from '@/utils/assignedColorWithState'
-import { transformState } from '@/utils/transformState'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 
@@ -26,22 +35,56 @@ export default function InventorySheetPage() {
     const [filterState, setFilterState] = useState('')
     const [dateFrom, setDateFrom] = useState('')
     const [dateTo, setDateTo] = useState('')
+    const [page, setPage] = useState(1)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [sheetToDelete, setSheetToDelete] = useState(null)
+    const limit = 10
 
-    const debouncedSearch = useDebounce(searchQuery)
-    const debouncedFiltered = useDebounce(filterState)
-    const debouncedDateFrom = useDebounce(dateFrom)
-    const debouncedDateTo = useDebounce(dateTo)
-    const { data, fetchInventorySheets, isLoading, setPage, page, totalPages, limit } = useGetInventorySheets()
+    const debouncedSearch = useDebounce(searchQuery, 500)
+    const debouncedFiltered = useDebounce(filterState, 500)
+    const debouncedDateFrom = useDebounce(dateFrom, 500)
+    const debouncedDateTo = useDebounce(dateTo, 500)
+
+    // React Query maneja automáticamente el estado y caché
+    const { data, isLoading } = useInventorySheets({
+        page,
+        limit,
+        search: debouncedSearch,
+        state: debouncedFiltered,
+        dateFrom: debouncedDateFrom,
+        dateTo: debouncedDateTo,
+    })
+
+    // Mutation para eliminar hojas de inventario
+    const deleteMutation = useDeleteInventorySheet()
+
+    const totalPages = data?.totalPages || 1
+
     const navigate = useNavigate()
 
     const handleChange = (e) => {
-        e.preventDefault();
+        e.preventDefault()
         setSearchQuery(e.target.value)
+        // Resetear a página 1 cuando se busca
+        setPage(1)
     }
 
-    useEffectOncePerDeps(() => {
-        fetchInventorySheets({ page, limit, query: debouncedSearch ?? '', state: debouncedFiltered, dateFrom: debouncedDateFrom, dateTo: debouncedDateTo })
-    }, [debouncedSearch, page, debouncedFiltered, debouncedDateFrom, debouncedDateTo])
+    const handleEdit = (inventorySheet) => {
+        navigate('/inventory-sheets/new', { state: { inventorySheet } })
+    }
+
+    const handleDeleteClick = (sheet) => {
+        setSheetToDelete(sheet)
+        setDeleteDialogOpen(true)
+    }
+
+    const handleDeleteConfirm = async () => {
+        if (sheetToDelete) {
+            await deleteMutation.mutateAsync(sheetToDelete.id)
+            setDeleteDialogOpen(false)
+            setSheetToDelete(null)
+        }
+    }
 
     return (
         <div className=" bg-gray-50 p-6">
@@ -127,38 +170,59 @@ export default function InventorySheetPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {isLoading ? <TableRow><TableCell colSpan={8} className="text-center">Cargando...</TableCell></TableRow> : data?.map((sheet) => {
-                                        return (<TableRow key={sheet.id}>
-                                            <TableCell className="font-medium">{sheet.id}</TableCell>
-                                            <TableCell>{sheet.warehouse.name}</TableCell>
-                                            <TableCell>{formatDate(sheet.emissionDate)}</TableCell>
-                                            <TableCell>{formatNumberWithZero(sheet.warehouse.serieWarehouse)}</TableCell>
-                                            <TableCell>{sheet.id}</TableCell>
-                                            <TableCell>{sheet?.user?.entityRelation?.name}</TableCell>
-                                            <TableCell>{sheet.user.username}</TableCell>
-                                            <TableCell>
-                                                <Badge className={assignedColorWithState(sheet.state)}>
-                                                    {transformState(sheet.state)}
-                                                </Badge>
+                                    {isLoading ? (
+                                        <TableRow>
+                                            <TableCell colSpan={8} className="text-center py-8">
+                                                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                                                <p className="mt-2 text-gray-600">Cargando hojas de inventario...</p>
                                             </TableCell>
-                                            {role !== 'user' &&
+                                        </TableRow>
+                                    ) : data?.data?.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                                                No se encontraron hojas de inventario
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        data?.data?.map((sheet) => {
+                                            return (<TableRow key={sheet.id}>
+                                                <TableCell className="font-medium">{sheet.id}</TableCell>
+                                                <TableCell>{sheet.warehouse.name}</TableCell>
+                                                <TableCell>{formatDate(sheet.emissionDate)}</TableCell>
+                                                <TableCell>{formatNumberWithZero(sheet.warehouse.serieWarehouse)}</TableCell>
+                                                <TableCell>{sheet.id}</TableCell>
+                                                <TableCell>{sheet?.user?.entityRelation?.name}</TableCell>
+                                                <TableCell>{sheet.user.username}</TableCell>
                                                 <TableCell>
-                                                    <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => navigate(`/inventory-sheets/new`, {
-                                                        state: {
-                                                            inventorySheet: {
-                                                                ...sheet,
-                                                                state: transformState(sheet.state)
-                                                            }
-                                                        }
-                                                    })}>
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </TableCell>}
-                                        </TableRow>);
-                                    })}
+                                                    <Badge className={assignedColorWithState(sheet.state)}>
+                                                        {sheet.state}
+                                                    </Badge>
+                                                </TableCell>
+                                                {role !== 'user' &&
+                                                    <TableCell>
+                                                        <div className="flex gap-2">
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="sm" 
+                                                                className="text-gray-600 hover:bg-gray-100" 
+                                                                onClick={() => handleEdit(sheet)}
+                                                            >
+                                                                <Pencil className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="sm" 
+                                                                className="text-red-600 hover:bg-red-50"
+                                                                onClick={() => handleDeleteClick(sheet)}
+                                                                disabled={deleteMutation.isPending}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>}
+                                            </TableRow>);
+                                        })
+                                    )}
                                 </TableBody>
                             </Table>
                         </div>
@@ -191,6 +255,30 @@ export default function InventorySheetPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Dialog de confirmación de eliminación */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>¿Estás seguro de eliminar esta hoja de inventario?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Esta acción no se puede deshacer. Se eliminará permanentemente la hoja de inventario{' '}
+                            <span className="font-semibold">ID: {sheetToDelete?.id}</span> del almacén{' '}
+                            <span className="font-semibold">{sheetToDelete?.warehouse?.name}</span>.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDeleteConfirm}
+                            className="bg-red-600 hover:bg-red-700"
+                            disabled={deleteMutation.isPending}
+                        >
+                            {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
