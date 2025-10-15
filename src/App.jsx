@@ -2,6 +2,9 @@ import './App.css'
 import { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { queryClient } from '@/lib/react-query'
 import { useUserStore } from '@/store/userStore'
 import Layout from '@/components/Layout'
 
@@ -23,35 +26,38 @@ function App() {
   const hasToken = !!user?.token
 
   return (
-    <Router>
-      <Suspense fallback={<div className="flex justify-center items-center h-screen">Cargando...</div>}>
-        <ToastContainer />
-        
-        {!hasToken ? (
-          // Sin token: Solo mostrar login
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
-          </Routes>
-        ) : (
-          // Con token: Mostrar todas las rutas privadas con Layout
-          <Layout isActive={true}>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Suspense fallback={<div className="flex justify-center items-center h-screen">Cargando...</div>}>
+          <ToastContainer />
+
+          {!hasToken ? (
+            // Sin token: Solo mostrar login
             <Routes>
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/select-company" element={<SelectCompanyPage />} />
-              <Route path="/warehouses" element={<WarehousesPage />} />
-              <Route path="/warehouses/new" element={<NewWarehousePage />} />
-              <Route path="/inventory-sheets" element={<InventorySheetPage />} />
-              <Route path="/inventory-sheets/new" element={<NewInventorySheetPage />} />
-              <Route path="/entidades" element={<EntitiesPage />} />
-              <Route path="/entidades/new" element={<NewEntityPage />} />
-              <Route path="/reportes" element={<InventoryReportsPage />} />
-              <Route path="/configuraciones" element={<ConfigurationsPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
-          </Layout>
-        )}
-      </Suspense>
-    </Router>
+          ) : (
+            // Con token: Mostrar todas las rutas privadas con Layout
+            <Layout isActive={true}>
+              <Routes>
+                <Route path="/home" element={<HomePage />} />
+                <Route path="/select-company" element={<SelectCompanyPage />} />
+                <Route path="/warehouses" element={<WarehousesPage />} />
+                <Route path="/warehouses/new" element={<NewWarehousePage />} />
+                <Route path="/inventory-sheets" element={<InventorySheetPage />} />
+                <Route path="/inventory-sheets/new" element={<NewInventorySheetPage />} />
+                <Route path="/entidades" element={<EntitiesPage />} />
+                <Route path="/entidades/new" element={<NewEntityPage />} />
+                <Route path="/reportes" element={<InventoryReportsPage />} />
+                <Route path="/configuraciones" element={<ConfigurationsPage />} />
+              </Routes>
+            </Layout>
+          )}
+        </Suspense>
+      </Router>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   )
 }
 
