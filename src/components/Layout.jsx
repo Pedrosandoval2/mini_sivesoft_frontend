@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { LogOut, Package, Building2, FileText, User, File } from 'lucide-react'
 import { useUserStore } from '@/store/userStore'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function Layout({ children }) {
   const navigate = useNavigate()
@@ -9,9 +10,20 @@ export default function Layout({ children }) {
   const isActive = location.pathname !== '/login' && location.pathname !== '/select-company'
   const clearUser = useUserStore((state) => state.clearUser)
   const user = useUserStore((state) => state?.user)
+  const queryClient = useQueryClient()
 
   const handleLogout = () => {
+    // Limpiar el store de usuario
     clearUser()
+    
+    // Limpiar el caché de React Query
+    queryClient.clear()
+    
+    // Cancelar todas las queries en ejecución
+    queryClient.cancelQueries()
+    
+    // Navegar al login
+    navigate('/login', { replace: true })
   }
 
   const navigationItems = [

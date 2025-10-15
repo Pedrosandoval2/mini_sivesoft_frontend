@@ -9,7 +9,7 @@ import { login } from '@/services/auth/login'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUserStore } from '@/store/userStore'
-import { getErrorToEndpoints } from '@/utils/getErrorToEndpoints'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
 
@@ -23,10 +23,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const response = await login(data);
-      getErrorToEndpoints(response);
       
       const userData = { ...response.data.user, token: response.data.token };
       setUser(userData);
+
+      toast.success('Inicio de sesión exitoso');
 
       // Redirigir según tenantIds
       if (userData?.tenantIds && userData.tenantIds.length > 1) {
@@ -35,8 +36,10 @@ export default function LoginPage() {
         navigate('/home');
       }
 
-    } catch {
-      // Error de inicio de sesión
+    } catch (error) {
+      console.error('Error logging in:', error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Error al iniciar sesión. Verifica tus credenciales.';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
