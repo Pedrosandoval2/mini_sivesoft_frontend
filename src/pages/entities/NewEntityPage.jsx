@@ -2,9 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { createEntity } from '@/services/entities/createEntity'
-import { updateEntity } from '@/services/entities/updateEntity'
-import { getErrorToEndpoints } from '@/utils/getErrorToEndpoints'
+import { useCreateEntity, useUpdateEntity } from '@/hooks/mutations/useEntityMutations'
 import { ArrowLeft } from 'lucide-react'
 import React, { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
@@ -29,6 +27,10 @@ export default function NewEntityPage() {
     const navigation = useNavigate()
     const location = useLocation()
     const { entity } = location.state || {}
+
+    // ✨ Usar mutations de React Query
+    const createMutation = useCreateEntity()
+    const updateMutation = useUpdateEntity()
 
     const { register, handleSubmit, control, watch, formState: { errors }, clearErrors } = useForm({
         defaultValues: entity || {
@@ -60,13 +62,22 @@ export default function NewEntityPage() {
         }
 
         try {
-            const response = entity ? await updateEntity(entity.id, body) : await createEntity(body);
-            getErrorToEndpoints(response.data);
-            navigation('/entidades');
+            if (entity) {
+                // Actualizar entidad existente
+                await updateMutation.mutateAsync({ id: entity.id, data: body })
+            } else {
+                // Crear nueva entidad
+                await createMutation.mutateAsync(body)
+            }
+            // Navegar después de éxito (los toast se manejan en el mutation)
+            navigation('/entidades')
         } catch {
-            // Error creating/updating entity
+            // El error ya se maneja en el mutation
         }
     }
+
+    // Determinar si está cargando alguna de las mutaciones
+    const isLoading = createMutation.isPending || updateMutation.isPending
 
     return (
         <div className=" bg-gray-50 p-6">
@@ -158,10 +169,27 @@ export default function NewEntityPage() {
                         </div>
 
                         <div className="flex gap-3 pt-4">
-                            <Button type="submit" className="flex-1 bg-black text-white hover:bg-gray-800">
-                                Guardar
+                            <Button 
+                                type="submit" 
+                                className="flex-1 bg-black text-white hover:bg-gray-800"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                                        {entity ? 'Actualizando...' : 'Guardando...'}
+                                    </>
+                                ) : (
+                                    entity ? 'Actualizar Entidad' : 'Guardar Entidad'
+                                )}
                             </Button>
-                            <Button type="button" variant="outline" className="flex-1 bg-transparent" onClick={() => navigation('/entidades')}>
+                            <Button 
+                                type="button" 
+                                variant="outline" 
+                                className="flex-1 bg-transparent" 
+                                onClick={() => navigation('/entidades')}
+                                disabled={isLoading}
+                            >
                                 Cancelar
                             </Button>
                         </div>
