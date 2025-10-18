@@ -35,7 +35,7 @@ export default function ProductsPage() {
     const { data, isLoading, isError } = useProducts({
         page,
         limit,
-        search: debouncedSearch
+        query: debouncedSearch
     })
 
     const deleteProductMutation = useDeleteProduct()
@@ -149,9 +149,9 @@ export default function ProductsPage() {
                                         </TableHeader>
                                         <TableBody>
                                             {data?.data?.data?.length > 0 ? (
-                                                data.data.data.map((product) => (
+                                                data.data.data.map((product, i) => (
                                                     <TableRow key={product.id}>
-                                                        <TableCell className="font-medium">#{product.id}</TableCell>
+                                                        <TableCell className="font-medium">#{i + 1}</TableCell>
                                                         <TableCell>{product.name}</TableCell>
                                                         <TableCell>
                                                             <Badge variant="outline">{product.unit}</Badge>
