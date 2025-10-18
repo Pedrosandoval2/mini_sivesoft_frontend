@@ -9,7 +9,7 @@ import { login } from '@/services/auth/login'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUserStore } from '@/store/userStore'
-import { toast } from 'sonner'
+import { toast } from 'react-toastify'
 
 export default function LoginPage() {
 
