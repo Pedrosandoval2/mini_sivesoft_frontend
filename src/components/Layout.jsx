@@ -65,7 +65,7 @@ export default function Layout({ children }) {
                   <div className=' flex flex-col items-center justify-center'>
                     <Building2 className="h-8 w-8 text-blue-600" />
                     <p className="text-sm text-gray-500">
-                      User: {user?.nameEntity || 'Invitado'}
+                      User: {user?.nameEntity || 'Admin'}
                     </p>
                   </div>
                 </div>
