@@ -21,7 +21,6 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { formatNumberWithZero } from '@/utils/formatNumberWithZero'
 import { useWarehouses } from '@/hooks/queries/useWarehouses'
 import { useDeleteWarehouse } from '@/hooks/mutations/useWarehouseMutations'
-import { useEffect } from 'react'
 
 export default function WarehousesPage() {
   const role = useUserStore((state) => state.user.role)
