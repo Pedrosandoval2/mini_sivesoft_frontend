@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { LogOut, Package, Building2, FileText, User, File } from 'lucide-react'
+import { LogOut, Package, Building2, FileText, User, File, Box } from 'lucide-react'
 import { useUserStore } from '@/store/userStore'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -31,6 +31,11 @@ export default function Layout({ children }) {
       path: '/warehouses',
       label: 'Almacenes',
       icon: Package
+    },
+    {
+      path: '/products',
+      label: 'Productos',
+      icon: Box
     },
     {
       path: '/inventory-sheets',

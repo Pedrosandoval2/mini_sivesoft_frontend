@@ -8,12 +8,14 @@ import { queryClient } from '@/lib/react-query'
 import { useUserStore } from '@/store/userStore'
 import Layout from '@/components/Layout'
 
-// Importación lazy de componentes
+// Importación lazy de componentes para optimizar el rendimiento y reducir el tamaño inicial del bundle
 const LoginPage = lazy(() => import('./pages/login/LoginPage.jsx'))
 const HomePage = lazy(() => import('./pages/home/HomePage'))
 const SelectCompanyPage = lazy(() => import('./pages/companySelect/SelectCompanyPage'))
 const WarehousesPage = lazy(() => import('./pages/warehouse/WarehousesPage'))
 const NewWarehousePage = lazy(() => import('./pages/warehouse/NewWarehousePage'))
+const ProductsPage = lazy(() => import('./pages/products/ProductsPage'))
+const NewProductPage = lazy(() => import('./pages/products/NewProductPage'))
 const InventorySheetPage = lazy(() => import('./pages/inventory/InventorySheetPage'))
 const NewInventorySheetPage = lazy(() => import('./pages/inventory/NewInventorySheetPage'))
 const EntitiesPage = lazy(() => import('./pages/entities/EntitiesPage'))
@@ -22,22 +24,21 @@ const InventoryReportsPage = lazy(() => import('./pages/reports/InventoryReports
 const ConfigurationsPage = lazy(() => import('./pages/configurations/ConfigurationsPage'))
 
 function App() {
+  // Obtener el usuario del store para verificar el token
   const user = useUserStore((state) => state.user)
+  // validar si el usuario tiene token
   const hasToken = !!user?.token
 
   return (
+    // Proveedor de consultas de React Query para estandarizar el manejo de datos asíncronos
     <QueryClientProvider client={queryClient}>
       <Router>
+        {/* En caso de que no haya token, redirigir a login */}
         <Suspense fallback={<div className="flex justify-center items-center h-screen">Cargando...</div>}>
+          {/* Para mostrarq notificaciones */}
           <ToastContainer />
 
-          {!hasToken ? (
-            // Sin token: Solo mostrar login
-            <Routes>
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="*" element={<Navigate to="/login" replace />} />
-            </Routes>
-          ) : (
+          {hasToken ? (
             // Con token: Mostrar todas las rutas privadas con Layout
             <Layout isActive={true}>
               <Routes>
@@ -45,6 +46,8 @@ function App() {
                 <Route path="/select-company" element={<SelectCompanyPage />} />
                 <Route path="/warehouses" element={<WarehousesPage />} />
                 <Route path="/warehouses/new" element={<NewWarehousePage />} />
+                <Route path="/products" element={<ProductsPage />} />
+                <Route path="/products/new" element={<NewProductPage />} />
                 <Route path="/inventory-sheets" element={<InventorySheetPage />} />
                 <Route path="/inventory-sheets/new" element={<NewInventorySheetPage />} />
                 <Route path="/entidades" element={<EntitiesPage />} />
@@ -53,6 +56,12 @@ function App() {
                 <Route path="/configuraciones" element={<ConfigurationsPage />} />
               </Routes>
             </Layout>
+          ) : (
+            // Sin token: Solo mostrar login
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
           )}
         </Suspense>
       </Router>
