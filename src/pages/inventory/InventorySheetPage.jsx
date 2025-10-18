@@ -128,9 +128,9 @@ export default function InventorySheetPage() {
                                             <SelectValue placeholder="Seleccionar estado" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="pending">Pendiente</SelectItem>
-                                            <SelectItem value="registered">Registrado</SelectItem>
-                                            <SelectItem value="approved">Aprobado</SelectItem>
+                                            <SelectItem value="pendiente">Pendiente</SelectItem>
+                                            <SelectItem value="registrado">Registrado</SelectItem>
+                                            <SelectItem value="aprobado">Aprobado</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
