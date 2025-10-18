@@ -10,8 +10,22 @@ import { useUserStore } from '@/store/userStore';
 import { formatNumberWithZero } from '@/utils/formatNumberWithZero';
 import { useWarehousesByUser } from '@/hooks/queries/useWarehousesByUser';
 import { useCreateInventorySheet, useUpdateInventorySheet } from '@/hooks/mutations/useInventorySheetMutations';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useProductByBarcode } from '@/hooks/queries/useProductByBarcode';
+import { QrScannerModal } from '@/components/scannerBarCode/QrScannerModal';
+import { toast } from 'react-toastify';
 
+/**
+ * Estructura inicial de un producto vacío
+ * Se usa como template al agregar nuevos items a la hoja de inventario
+ */
+const initialProducts = { productId: "", quantity: 0, unit: "unidades", price: 0 }
+
+/**
+ * Transforma los datos de la hoja de inventario del backend al formato del formulario
+ * @param {Object} data - Datos de la hoja de inventario desde el backend
+ * @returns {Object} - Datos formateados para el formulario
+ */
 const transformInitialData = (data) => {
   return {
     sheet: {
@@ -29,27 +43,58 @@ const transformInitialData = (data) => {
   }
 }
 
+/**
+ * Componente para crear o editar hojas de inventario
+ * 
+ * Funcionalidades principales:
+ * - Crear nueva hoja de inventario con múltiples productos
+ * - Editar hoja de inventario existente
+ * - Escanear códigos de barras para agregar productos automáticamente
+ * - Validación de formularios con React Hook Form
+ * - Gestión de estado con React Query
+ */
 export default function NewInventorySheetPage() {
+  // 📦 Estado del usuario desde Zustand store
   const name = useUserStore((state) => state.user)
-
-
-  // ✨ React Query para obtener almacenes del usuario
-  const { data: warehouses, isLoading: loadingWarehouses } = useWarehousesByUser();
   
-  // ✨ React Query mutations para crear/actualizar hojas de inventario
+  // 🔍 Estado para el código escaneado por la cámara
+  const [scannedResult, setScannedResult] = useState('');
+  
+  // 📷 Estado para controlar la visibilidad del modal del escáner
+  const [qrScannerOpen, setQrScannerOpen] = useState(false);
+
+  // ✨ React Query: Obtener almacenes del usuario autenticado
+  const { data: warehouses, isLoading: loadingWarehouses } = useWarehousesByUser();
+
+  // ✨ React Query: Buscar producto por código de barras escaneado
+  // Solo se ejecuta cuando hay un código escaneado (enabled)
+  const { data: productData } = useProductByBarcode(scannedResult, {
+    enabled: scannedResult.length > 0
+  });
+
+
+
+  // ✨ React Query: Mutations para crear/actualizar hojas de inventario
+  // Incluyen invalidación de caché y notificaciones toast automáticas
   const createMutation = useCreateInventorySheet()
   const updateMutation = useUpdateInventorySheet()
 
+  // 🎨 Estado para controlar la visibilidad de las secciones colapsables
   const [isItemsOpen, setIsItemsOpen] = useState(true)
   const [isSheetOpen, setIsSheetOpen] = useState(true)
 
+  // 🧭 Navegación y datos de la hoja a editar (si existe)
   const navigate = useNavigate()
   const location = useLocation();
   const { inventorySheet } = location.state || {};
 
+  // 📝 Valores por defecto del formulario
+  // Si existe inventorySheet, transforma los datos para el formulario
+  // Si no, usa valores vacíos para crear nueva hoja
   const defaultValues = transformInitialData(inventorySheet);
 
-  const { register, handleSubmit, formState: { errors }, control, watch } = useForm({
+  // 📋 React Hook Form: Configuración del formulario
+  const { register, handleSubmit, formState: { errors }, control, watch, setValue } = useForm({
     defaultValues: inventorySheet ? defaultValues : {
       sheet: {
         warehouseId: "",
@@ -57,28 +102,83 @@ export default function NewInventorySheetPage() {
         state: "registrado",
         serie: "INV"
       },
-      details: [{ productId: "", quantity: 0, unit: "unidades", price: 0 }]
+      details: [initialProducts]
     }
   });
 
+  // 📝 useFieldArray: Manejo dinámico del array de productos
+  // Permite agregar, eliminar y modificar items de forma reactiva
   const { fields, append, remove } = useFieldArray({
     control,
     name: "details"
   })
 
+  // 👀 Watch: Observar el almacén seleccionado para actualizar la serie
   const warehouseSelected = watch("sheet.warehouseId");
 
+  // 🔢 Calcular la serie del almacén seleccionado
+  // useMemo evita recalcular en cada render, solo cuando cambian las dependencias
   const warehouseSerie = useMemo(() => {
     if (!warehouseSelected || !warehouses?.length) return "0000";
     return warehouses.find(w => w?.id === Number(warehouseSelected))?.serieWarehouse || "0000";
   }, [warehouseSelected, warehouses]);
 
+  /**
+   * Cancela la creación/edición y vuelve a la lista de hojas
+   */
   const handleCancel = () => {
     navigate('/inventory-sheets')
   }
 
+  /**
+   * useEffect: Procesar producto escaneado
+   * 
+   * Flujo:
+   * 1. Si no hay productData y hay código escaneado → Error (producto no encontrado)
+   * 2. Si hay productData → Llenar el último item del formulario con los datos del producto
+   * 3. Mostrar notificación de éxito/error
+   * 4. Limpiar el código escaneado
+   * 5. Agregar un nuevo item vacío al formulario
+   */
+  useEffect(() => {
+    if (!productData) {
+      if (scannedResult.length > 0) {
+        toast.error('Producto no encontrado para el código escaneado');
+        setScannedResult('');
+      }
+      return;
+    }
+
+    // Obtener el índice del último item agregado
+    const lastIndex = fields.length - 1;
+    const product = productData.data;
+    
+    // Llenar automáticamente los campos del producto escaneado
+    setValue(`details.${lastIndex}.productId`, product.barcode);
+    setValue(`details.${lastIndex}.quantity`, 1);
+    setValue(`details.${lastIndex}.unit`, product.unit);
+    setValue(`details.${lastIndex}.price`, product.price);
+    
+    toast.success(`Producto "${product.name}" agregado`);
+    setScannedResult('');
+    
+    // Agregar un nuevo item vacío para el próximo escaneo
+    append(initialProducts);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productData]);  /**
+   * Maneja el envío del formulario
+   * 
+   * @param {Object} data - Datos del formulario validados por React Hook Form
+   * 
+   * Proceso:
+   * 1. Transformar datos del formulario al formato del backend
+   * 2. Filtrar productos vacíos (sin productId)
+   * 3. Validar que haya al menos un producto
+   * 4. Crear o actualizar según el modo (isEditMode)
+   * 5. Navegar a la lista después del éxito
+   */
   const onSubmit = async (data) => {
-    console.log("🚀 ~ onSubmit ~ data:", data)
+    // Preparar body para el backend
     const body = {
       sheet: {
         warehouseId: Number(data.sheet.warehouseId),
@@ -86,58 +186,92 @@ export default function NewInventorySheetPage() {
         state: data.sheet.state,
         serie: "INV",
       },
-      details: data.details.map(item => ({
-        productId: item.productId,
-        quantity: Number(item.quantity),
-        unit: item.unit,
-        price: Number(item.price)
-      }))
+      details: data.details
+        .filter(item => item.productId) // Filtrar items vacíos
+        .map(item => ({
+          productId: item.productId,
+          quantity: Number(item.quantity),
+          unit: item.unit,
+          price: Number(item.price)
+        }))
+    }
+
+    // Validar que haya al menos un producto
+    if (body.details.length === 0) {
+      toast.error('Debes agregar al menos un producto');
+      return;
     }
 
     try {
       if (inventorySheet) {
-        // Actualizar hoja de inventario existente
+        // Modo edición: Actualizar hoja existente
         await updateMutation.mutateAsync({ id: inventorySheet.id, data: body })
       } else {
-        // Crear nueva hoja de inventario
+        // Modo creación: Crear nueva hoja
         await createMutation.mutateAsync(body)
       }
-      // Navegar después de éxito (los toast se manejan en el mutation)
+      // Navegar después del éxito (los toast se manejan en la mutation)
       navigate('/inventory-sheets')
     } catch {
-      // El error ya se maneja en el mutation
+      // El error ya se maneja en la mutation con toast.error
     }
   }
 
-  // Determinar si está cargando alguna de las mutaciones
+  /**
+   * Abre el modal del escáner de códigos de barras
+   */
+  const handleScanBarcode = () => {
+    setQrScannerOpen(true);
+  }
+
+  /**
+   * Procesa el resultado del escaneo
+   * @param {string} decodedText - Código de barras escaneado
+   */
+  const handleNewScanResult = (decodedText) => {
+    setScannedResult(decodedText);
+    setQrScannerOpen(false);
+  };
+
+  // 🔄 Estados de carga de las mutaciones
   const isLoading = createMutation.isPending || updateMutation.isPending
-  
-  // Texto del botón según el modo (crear/editar)
-  const submitButtonText = inventorySheet ? 'Actualizar Hoja' : 'Guardar Hoja'
-  const loadingButtonText = inventorySheet ? 'Actualizando...' : 'Guardando...'
+
+  // 📝 Determinar si está en modo edición
+  const isEditMode = Boolean(inventorySheet)
+
+  // 🏷️ Textos dinámicos según el modo
+  const submitButtonText = isEditMode ? 'Actualizar Hoja' : 'Guardar Hoja'
+  const loadingButtonText = isEditMode ? 'Actualizando...' : 'Guardando...'
+  const pageTitle = isEditMode ? 'Editar Hoja de Inventario' : 'Nueva Hoja de Inventario'
 
   return (
     <div className=" bg-gray-50 p-6">
       <div className="mx-auto max-w-5xl">
-        <div className=' flex items-center space-x-4 mb-8'>
-          <Button variant="outline" size="sm" onClick={handleCancel} className="cursor-pointer">
+        {/* 🔙 Header con botón de volver y título dinámico */}
+        <div className="flex items-center space-x-4 mb-8">
+          <Button variant="outline" size="sm" onClick={handleCancel}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver
           </Button>
 
-          <h1 className="text-3xl font-bold text-foreground">Hoja de Inventario</h1>
+          <h1 className="text-3xl font-bold text-foreground">{pageTitle}</h1>
         </div>
 
+        {/* 📋 Formulario principal */}
         <form onSubmit={handleSubmit(onSubmit)} className="rounded-lg bg-white p-8 shadow-sm">
+          
+          {/* 📄 Sección 1: Información de la Hoja (Collapsible) */}
           <Collapsible open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md p-2 hover:bg-gray-50">
-              <span className="font-semibold text-foreground">Nueva Hoja de Inventario</span>
+              <span className="font-semibold text-foreground">Información de la Hoja</span>
               <ChevronDown className={`h-5 w-5 transition-transform ${isSheetOpen ? "rotate-180" : ""}`} />
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-4 space-y-6">
               <div className="space-y-6">
                 <div>
+                  {/* Fila 1: Almacén y Fecha de Emisión */}
                   <div className='flex gap-4 mb-6'>
+                    {/* Select de Almacenes con React Hook Form Controller */}
                     <div className='flex-1'>
                       <Label htmlFor="warehouseId" className="mb-2">Almacén</Label>
                       <Controller
@@ -167,6 +301,8 @@ export default function NewInventorySheetPage() {
                       />
                       {errors.sheet?.warehouseId && <p className="text-red-500 text-sm mt-1">{errors.sheet.warehouseId.message}</p>}
                     </div>
+                    
+                    {/* Input de Fecha */}
                     <div className="flex-1">
                       <Label htmlFor="issueDate" className="mb-2">F. Emisión</Label>
                       <Input type="date" className="w-full" name="sheet.emissionDate" id="issueDate"
@@ -174,38 +310,19 @@ export default function NewInventorySheetPage() {
                       {errors.sheet?.emissionDate && <p className="text-red-500 text-sm mt-1">La fecha de emisión es obligatoria</p>}
                     </div>
                   </div>
+                  
+                  {/* Fila 2: Estado y Serie */}
                   <div className='flex gap-4'>
+                    {/* Select de Estado */}
                     <div className="flex-1">
                       <Label htmlFor="status" className="mb-2">Estado</Label>
-                      {/* <Controller
-                    name="ownerId"
-                    control={control}
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger id="ownerId" className="w-full">
-                          <SelectValue placeholder="Seleccionar Propietario" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {entitiesLoading ? (
-                            <div className="p-4 text-center text-gray-500">Cargando...</div>
-                          ) : (
-                            data.data?.map((owner) => (
-                              <SelectItem key={owner.id} value={String(owner.id)}>
-                                {owner.name}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  /> */}
                       <Controller
                         control={control}
                         name='sheet.state'
                         render={({ field }) => (
                           <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger id="sheet.state" className='w-full'>
-                              <SelectValue placeholder="Seleccionar estado"/>
+                              <SelectValue placeholder="Seleccionar estado" />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectItem value="pendiente">Pendiente</SelectItem>
@@ -218,6 +335,7 @@ export default function NewInventorySheetPage() {
                       {errors.sheet?.state && <p className="text-red-500 text-sm mt-1">El estado es obligatorio</p>}
                     </div>
 
+                    {/* Campo de Serie (solo lectura, calculado automáticamente) */}
                     <div className="flex-1">
                       <Label htmlFor="series" className="mb-2">Serie</Label>
                       <div id="serie" className="border p-[6.5px] rounded-md">
@@ -225,6 +343,8 @@ export default function NewInventorySheetPage() {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Campo de Entidad Responsable (solo lectura) */}
                   <div className="w-[49%] mt-6">
                     <Label htmlFor="responsibleEntity" className="mb-2">Entidad Responsable</Label>
                     <div id="responsibleEntity" className="border p-[6.5px] rounded-md">
@@ -246,7 +366,19 @@ export default function NewInventorySheetPage() {
                 {fields.map((item, index) => (
                   <div key={item.id} className="space-y-4 rounded-lg border bg-gray-50 p-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-foreground">Item #{index + 1}</h3>
+                      <div className="flex items-center gap-4">
+                        <h3 className="font-semibold text-foreground">Item #{index + 1}</h3>
+                        {fields.length - 1 === index && (
+                          <Button
+                            size="sm"
+                            type="button"
+                            className="text-white bg-green-600 hover:bg-green-700"
+                            onClick={handleScanBarcode}
+                          >
+                            Escanear Código
+                          </Button>
+                        )}
+                      </div>
                       {fields.length > 1 && (
                         <Button
                           type="button"
@@ -336,7 +468,7 @@ export default function NewInventorySheetPage() {
                   </div>
                 ))}
 
-                <Button type="button" variant="ghost" className="text-blue-600 hover:text-blue-700" onClick={() => append({ productId: "", quantity: 0, unit: "unidades", price: 0 })}>
+                <Button type="button" variant="ghost" className="text-blue-600 hover:text-blue-700" onClick={() => append(initialProducts)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Agregar Item
                 </Button>
@@ -344,23 +476,25 @@ export default function NewInventorySheetPage() {
             </Collapsible>
           </div>
 
+          {/* 🎯 Botones de Acción del Formulario */}
           <div className="mt-8 flex justify-end gap-3">
-            <Button 
+            <Button
               type="button"
-              variant="secondary" 
-              className="bg-gray-400 text-white hover:bg-gray-500" 
+              variant="secondary"
+              className="bg-gray-400 text-white hover:bg-gray-500"
               onClick={handleCancel}
               disabled={isLoading}
             >
               Cancelar
             </Button>
-            <Button 
+            <Button
               type="submit"
               className="bg-blue-600 text-white hover:bg-blue-700"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
+                  {/* Spinner de carga */}
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   {loadingButtonText}
                 </>
@@ -371,6 +505,21 @@ export default function NewInventorySheetPage() {
           </div>
         </form>
       </div>
+      
+      {/* 📷 Modal del Escáner de Códigos de Barras */}
+      <QrScannerModal
+        isOpen={qrScannerOpen}
+        title="Escanear Código de Barras"
+        description="Apunta la cámara hacia el código de barras del producto"
+        onScanSuccess={handleNewScanResult}
+        onScanError={(errorMessage) => {
+          // Solo loguear errores reales, ignorar "NotFoundException"
+          if (!errorMessage.includes('NotFoundException')) {
+            console.error("Error de escaneo:", errorMessage);
+          }
+        }}
+        onClose={() => setQrScannerOpen(false)}
+      />
     </div>
   )
 }
