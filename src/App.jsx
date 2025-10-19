@@ -7,6 +7,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { queryClient } from '@/lib/react-query'
 import { useUserStore } from '@/store/userStore'
 import Layout from '@/components/Layout'
+import AdminRoute from '@/components/AdminRoute'
 
 // Importación lazy de componentes para optimizar el rendimiento y reducir el tamaño inicial del bundle
 const LoginPage = lazy(() => import('./pages/login/LoginPage.jsx'))
@@ -16,6 +17,8 @@ const WarehousesPage = lazy(() => import('./pages/warehouse/WarehousesPage'))
 const NewWarehousePage = lazy(() => import('./pages/warehouse/NewWarehousePage'))
 const ProductsPage = lazy(() => import('./pages/products/ProductsPage'))
 const NewProductPage = lazy(() => import('./pages/products/NewProductPage'))
+const UsersPage = lazy(() => import('./pages/users/UsersPage'))
+const NewUserPage = lazy(() => import('./pages/users/NewUserPage'))
 const InventorySheetPage = lazy(() => import('./pages/inventory/InventorySheetPage'))
 const NewInventorySheetPage = lazy(() => import('./pages/inventory/NewInventorySheetPage'))
 const EntitiesPage = lazy(() => import('./pages/entities/EntitiesPage'))
@@ -48,6 +51,8 @@ function App() {
                 <Route path="/warehouses/new" element={<NewWarehousePage />} />
                 <Route path="/products" element={<ProductsPage />} />
                 <Route path="/products/new" element={<NewProductPage />} />
+                <Route path="/users" element={<AdminRoute><UsersPage /></AdminRoute>} />
+                <Route path="/users/new" element={<AdminRoute><NewUserPage /></AdminRoute>} />
                 <Route path="/inventory-sheets" element={<InventorySheetPage />} />
                 <Route path="/inventory-sheets/new" element={<NewInventorySheetPage />} />
                 <Route path="/entidades" element={<EntitiesPage />} />
