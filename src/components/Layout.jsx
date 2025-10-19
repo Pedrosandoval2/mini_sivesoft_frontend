@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { LogOut, Package, Building2, FileText, User, File, Box } from 'lucide-react'
+import { LogOut, Package, Building2, FileText, User, File, Box, Users } from 'lucide-react'
 import { useUserStore } from '@/store/userStore'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -26,6 +26,7 @@ export default function Layout({ children }) {
     navigate('/login', { replace: true })
   }
 
+  // Menú base para todos los usuarios
   const navigationItems = [
     {
       path: '/warehouses',
@@ -53,6 +54,15 @@ export default function Layout({ children }) {
       icon: File
     }
   ]
+
+  // Agregar "Gestión de Usuarios" solo para administradores
+  if (user?.role !== 'user') {
+    navigationItems.push({
+      path: '/users',
+      label: 'Usuarios',
+      icon: Users
+    })
+  }
 
   return (
     <>
