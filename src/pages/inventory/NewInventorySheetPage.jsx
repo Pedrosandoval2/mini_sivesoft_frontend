@@ -14,6 +14,9 @@ import { useState, useMemo, useEffect } from 'react';
 import { useProductByBarcode } from '@/hooks/queries/useProductByBarcode';
 import { QrScannerModal } from '@/components/scannerBarCode/QrScannerModal';
 import { toast } from 'react-toastify';
+import { CodesModal } from '@/components/codesModal/CodesModal';
+import { queryClient } from '@/lib/react-query';
+import { getProductByBarcode } from '@/services/products/getProductByBarcode';
 
 /**
  * Estructura inicial de un producto vacío
@@ -56,10 +59,10 @@ const transformInitialData = (data) => {
 export default function NewInventorySheetPage() {
   // 📦 Estado del usuario desde Zustand store
   const name = useUserStore((state) => state.user)
-  
+
   // 🔍 Estado para el código escaneado por la cámara
   const [scannedResult, setScannedResult] = useState('');
-  
+
   // 📷 Estado para controlar la visibilidad del modal del escáner
   const [qrScannerOpen, setQrScannerOpen] = useState(false);
 
@@ -72,7 +75,122 @@ export default function NewInventorySheetPage() {
     enabled: scannedResult.length > 0
   });
 
+  const [isModalOpenCodes, setIsModalOpenCodes] = useState(false)
 
+  const handleAddMultiCodes = async (codes) => {
+    setIsModalOpenCodes(false)
+
+    // Filtrar códigos vacíos
+    const validCodes = codes.filter(code => code.value && code.value.trim() !== '')
+
+    if (validCodes.length === 0) {
+      toast.warning('No hay códigos válidos para procesar')
+      return
+    }
+
+    // Mostrar toast de inicio
+    const loadingToastId = toast.loading(`Procesando ${validCodes.length} código(s)...`)
+
+    try {
+      // Usar fetchQuery para aprovechar el caché de React Query
+      const promises = validCodes.map(code => {
+        return queryClient.fetchQuery({
+          queryKey: ['products', 'barcode', code.value],
+          queryFn: () => getProductByBarcode(code.value),
+          staleTime: 5 * 60 * 1000, // 5 minutos de caché
+        })
+          .then(response => {
+            console.log(response);
+
+            return {
+              success: true,
+              code: code.value,
+              product: response.data
+            }
+          })
+          .catch(error => {
+            console.log("🚀 ~ handleAddMultiCodes ~ error:", error)
+            return {
+              success: false,
+              code: code.value,
+              error: error.response?.data?.message || 'Producto no encontrado'
+            }
+          });
+      }
+      )
+
+      // Esperar a que todas las promesas se resuelvan
+      const results = await Promise.all(promises)
+      console.log("🚀 ~ handleAddMultiCodes ~ results:", results)
+
+      // Separar resultados exitosos de los fallidos
+      const successResults = results.filter(r => r.success)
+      console.log("🚀 ~ handleAddMultiCodes ~ successResults:", successResults)
+      const failedResults = results.filter(r => !r.success)
+
+      // Agregar productos encontrados al formulario
+      if (successResults.length > 0) {
+        // Remover el último item vacío si existe
+        const lastIndex = fields.length - 1
+        const lastItem = watch(`details.${lastIndex}`)
+        if (!lastItem.productId) {
+          remove(lastIndex)
+        }
+
+        // Agregar cada producto encontrado
+        successResults.forEach(result => {
+          console.log("🚀 ~ handleAddMultiCodes ~ result:", result)
+          append({
+            productId: result.product.barcode,
+            quantity: 1,
+            unit: result.product.unit,
+            price: result.product.price
+          })
+        })
+
+        // Agregar un item vacío al final
+        append(initialProducts)
+
+        // Actualizar toast de carga a éxito
+        toast.update(loadingToastId, {
+          render: `${successResults.length} producto(s) agregado(s) exitosamente`,
+          type: 'success',
+          isLoading: false,
+          autoClose: 3000
+        })
+      }
+
+      // Mostrar errores si hubo productos no encontrados
+      if (failedResults.length > 0) {
+        const failedCodes = failedResults.map(r => r.code).join(', ')
+
+        if (successResults.length === 0) {
+          // Si todos fallaron, actualizar el toast de loading
+          toast.update(loadingToastId, {
+            render: `Códigos no encontrados: ${failedCodes}`,
+            type: 'error',
+            isLoading: false,
+            autoClose: 5000
+          })
+        } else {
+          // Si algunos fallaron, mostrar nuevo toast
+          toast.error(
+            `${failedResults.length} código(s) no encontrado(s): ${failedCodes}`,
+            { autoClose: 5000 }
+          )
+        }
+      }
+
+    } catch (error) {
+      console.error('Error al procesar códigos múltiples:', error)
+      toast.update(loadingToastId, {
+        render: 'Error al procesar los códigos de barras',
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000
+      })
+    }
+  }
 
   // ✨ React Query: Mutations para crear/actualizar hojas de inventario
   // Incluyen invalidación de caché y notificaciones toast automáticas
@@ -152,16 +270,16 @@ export default function NewInventorySheetPage() {
     // Obtener el índice del último item agregado
     const lastIndex = fields.length - 1;
     const product = productData.data;
-    
+
     // Llenar automáticamente los campos del producto escaneado
     setValue(`details.${lastIndex}.productId`, product.barcode);
     setValue(`details.${lastIndex}.quantity`, 1);
     setValue(`details.${lastIndex}.unit`, product.unit);
     setValue(`details.${lastIndex}.price`, product.price);
-    
+
     toast.success(`Producto "${product.name}" agregado`);
     setScannedResult('');
-    
+
     // Agregar un nuevo item vacío para el próximo escaneo
     append(initialProducts);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -259,7 +377,7 @@ export default function NewInventorySheetPage() {
 
         {/* 📋 Formulario principal */}
         <form onSubmit={handleSubmit(onSubmit)} className="rounded-lg bg-white p-8 shadow-sm">
-          
+
           {/* 📄 Sección 1: Información de la Hoja (Collapsible) */}
           <Collapsible open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md p-2 hover:bg-gray-50">
@@ -301,7 +419,7 @@ export default function NewInventorySheetPage() {
                       />
                       {errors.sheet?.warehouseId && <p className="text-red-500 text-sm mt-1">{errors.sheet.warehouseId.message}</p>}
                     </div>
-                    
+
                     {/* Input de Fecha */}
                     <div className="flex-1">
                       <Label htmlFor="issueDate" className="mb-2">F. Emisión</Label>
@@ -310,7 +428,7 @@ export default function NewInventorySheetPage() {
                       {errors.sheet?.emissionDate && <p className="text-red-500 text-sm mt-1">La fecha de emisión es obligatoria</p>}
                     </div>
                   </div>
-                  
+
                   {/* Fila 2: Estado y Serie */}
                   <div className='flex gap-4'>
                     {/* Select de Estado */}
@@ -343,7 +461,7 @@ export default function NewInventorySheetPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Campo de Entidad Responsable (solo lectura) */}
                   <div className="w-[49%] mt-6">
                     <Label htmlFor="responsibleEntity" className="mb-2">Entidad Responsable</Label>
@@ -378,6 +496,13 @@ export default function NewInventorySheetPage() {
                             Escanear Código
                           </Button>
                         )}
+                        <div>
+                          <Button onClick={() => setIsModalOpenCodes(true)} type="button" size="sm" className="hover:bg-blue-700 bg-blue-600">
+                            Escanear códigos
+                          </Button>
+
+                          <CodesModal isOpen={isModalOpenCodes} onClose={() => setIsModalOpenCodes(false)} onAddCodes={handleAddMultiCodes} />
+                        </div>
                       </div>
                       {fields.length > 1 && (
                         <Button
@@ -505,7 +630,7 @@ export default function NewInventorySheetPage() {
           </div>
         </form>
       </div>
-      
+
       {/* 📷 Modal del Escáner de Códigos de Barras */}
       <QrScannerModal
         isOpen={qrScannerOpen}
