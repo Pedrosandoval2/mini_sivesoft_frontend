@@ -6,11 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { X, Download, Plus } from "lucide-react"
-import * as XLSX from "xlsx"
+import { X, Plus } from "lucide-react"
 
-
-export function CodesModal({ isOpen, onClose }) {
+export function CodesModal({ isOpen, onClose, onAddCodes }) {
     const inputRefs = useRef([])
 
     const { control, watch, reset } = useForm({
@@ -25,6 +23,11 @@ export function CodesModal({ isOpen, onClose }) {
     })
 
     const codesWatch = watch("codes")
+
+    const handleSubmitAddCodes = () => {
+        const filledCodes = codesWatch.filter((code) => code.value?.trim().length > 0)
+        onAddCodes(filledCodes)
+    }
 
     useEffect(() => {
         if (isOpen && inputRefs.current[0]) {
@@ -68,38 +71,6 @@ export function CodesModal({ isOpen, onClose }) {
         setTimeout(() => {
             inputRefs.current[fields.length]?.focus()
         }, 0)
-    }
-
-    const handleExportToExcel = () => {
-        const filledCodes = codesWatch.filter((code) => code.value?.trim().length > 0)
-
-        if (filledCodes.length === 0) {
-            alert("No hay códigos para exportar")
-            return
-        }
-
-        const data = filledCodes.map((code, index) => ({
-            Número: index + 1,
-            Código: code.value.trim(),
-            Fecha: new Date().toLocaleDateString("es-ES"),
-        }))
-
-        const worksheet = XLSX.utils.json_to_sheet(data)
-        const workbook = XLSX.utils.book_new()
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Códigos")
-
-        worksheet["!cols"] = [{ wch: 10 }, { wch: 30 }, { wch: 15 }]
-
-        const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
-        const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `codigos_${new Date().getTime()}.xlsx`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
     }
 
     const handleClearAll = () => {
@@ -187,13 +158,8 @@ export function CodesModal({ isOpen, onClose }) {
                     </div>
 
                     <div className="flex gap-2 pt-4 border-t border-border">
-                        <Button
-                            onClick={handleExportToExcel}
-                            disabled={filledCodesCount === 0}
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                        >
-                            <Download className="w-4 h-4 mr-2" />
-                            Exportar {filledCodesCount > 0 ? `(${filledCodesCount})` : ""} a Excel
+                        <Button onClick={handleSubmitAddCodes} variant="outline" className="flex-1 bg-transparent">
+                            Insertar códigos
                         </Button>
                         <Button onClick={onClose} variant="outline" className="flex-1 bg-transparent">
                             Cerrar
