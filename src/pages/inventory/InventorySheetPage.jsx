@@ -13,7 +13,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { Plus, Search, ChevronLeft, ChevronRight, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Search, ChevronLeft, ChevronRight, Pencil, Trash2, Download } from 'lucide-react'
 
 import { useUserStore } from '@/store/userStore'
 import { useInventorySheets } from '@/hooks/queries/useInventorySheets'
@@ -26,6 +26,9 @@ import { formatNumberWithZero } from '@/utils/formatNumberWithZero'
 import { assignedColorWithState } from '@/utils/assignedColorWithState'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { toast } from 'react-toastify'
+import * as XLSX from "xlsx"
+
 
 
 export default function InventorySheetPage() {
@@ -85,6 +88,40 @@ export default function InventorySheetPage() {
             setSheetToDelete(null)
         }
     }
+
+    const handleExportToExcel = (details) => {
+        const filledCodes = details?.map((detail) => detail?.productId).filter(code => code.trim() !== '')
+
+        if (filledCodes.length === 0) {
+            toast.error("No hay códigos para exportar")
+            return
+        }
+
+        const data = filledCodes.map((code, index) => ({
+            Número: index + 1,
+            Código: code,
+            Fecha: new Date().toLocaleDateString("es-ES"),
+        }))
+
+        const worksheet = XLSX.utils.json_to_sheet(data)
+        const workbook = XLSX.utils.book_new()
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Códigos")
+
+        worksheet["!cols"] = [{ wch: 10 }, { wch: 30 }, { wch: 15 }]
+
+        const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
+        const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = `Hoja de inventario - ${filledCodes.length} CODIGOS - ${new Date().toLocaleDateString("es-ES")}.xlsx`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+    }
+
+    const stateApprovated = (state) => state === 'aprobado'
 
     return (
         <div className=" bg-gray-50 p-6">
@@ -166,7 +203,7 @@ export default function InventorySheetPage() {
                                         <TableHead>Razón Social</TableHead>
                                         <TableHead>Usuario</TableHead>
                                         <TableHead>Estado</TableHead>
-                                        {role !== 'user' && <TableHead>Acciones</TableHead>}
+                                        {role !== 'user' && <TableHead></TableHead>}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -198,28 +235,37 @@ export default function InventorySheetPage() {
                                                         {sheet.state}
                                                     </Badge>
                                                 </TableCell>
-                                                {role !== 'user' &&
-                                                    <TableCell>
-                                                        <div className="flex gap-2">
-                                                            <Button 
-                                                                variant="ghost" 
-                                                                size="sm" 
-                                                                className="text-gray-600 hover:bg-gray-100" 
-                                                                onClick={() => handleEdit(sheet)}
-                                                            >
-                                                                <Pencil className="h-4 w-4" />
-                                                            </Button>
-                                                            <Button 
-                                                                variant="ghost" 
-                                                                size="sm" 
-                                                                className="text-red-600 hover:bg-red-50"
-                                                                onClick={() => handleDeleteClick(sheet)}
-                                                                disabled={deleteMutation.isPending}
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        </div>
-                                                    </TableCell>}
+                                                <TableCell>
+                                                    <div className="flex gap-2 text-gray-400">
+                                                        {role !== 'user' && stateApprovated(sheet.state) && (
+                                                            <>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="text-gray-600 hover:bg-gray-100"
+                                                                    onClick={() => handleEdit(sheet)}
+                                                                >
+                                                                    <Pencil className="h-4 w-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="text-red-600 hover:bg-red-50"
+                                                                    onClick={() => handleDeleteClick(sheet)}
+                                                                    disabled={deleteMutation.isPending}
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            </>
+                                                        )}
+                                                        <Button
+                                                            onClick={() => handleExportToExcel(sheet.details)}
+                                                            className="bg-green-600 hover:bg-green-700 text-white"
+                                                        >
+                                                            <Download className="w-4 h-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
                                             </TableRow>);
                                         })
                                     )}
