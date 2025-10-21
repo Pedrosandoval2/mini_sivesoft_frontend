@@ -3,6 +3,14 @@ import { Button } from '@/components/ui/button'
 import { LogOut, Package, Building2, FileText, User, File, Box } from 'lucide-react'
 import { useUserStore } from '@/store/userStore'
 import { useQueryClient } from '@tanstack/react-query'
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import { cn } from "@/lib/utils"
 
 export default function Layout({ children }) {
   const navigate = useNavigate()
@@ -58,8 +66,8 @@ export default function Layout({ children }) {
   return (
     <>
       {isActive ? (
-        <div className="bg-gray-50">
-          <header className="bg-white shadow-sm border-b">
+        <div className="bg-gray-50 min-h-screen">
+          <header className="bg-white shadow-sm border-b sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between items-center h-16">
                 {/* Logo y Usuario */}
@@ -72,49 +80,53 @@ export default function Layout({ children }) {
                   </div>
                 </div>
 
-                {/* Navegación Desktop */}
-                <div className="flex items-center space-x-4">
-                  <nav className="hidden md:flex items-center space-x-4">
+                {/* Navegación con NavigationMenu */}
+                <NavigationMenu className="hidden md:block">
+                  <NavigationMenuList>
                     {navigationItems.map((item) => {
                       const Icon = item.icon
                       const isActiveRoute = location.pathname === item.path
                       return (
-                        <Button
-                          key={item.path}
-                          variant={isActiveRoute ? 'default' : 'ghost'}
-                          onClick={() => navigate(item.path)}
-                          className="flex items-center space-x-2"
-                        >
-                          <Icon className="h-4 w-4" />
-                          <span>{item.label}</span>
-                        </Button>
+                        <NavigationMenuItem key={item.path}>
+                          <NavigationMenuLink
+                            onClick={() => navigate(item.path)}
+                            className={cn(
+                              navigationMenuTriggerStyle(),
+                              "cursor-pointer flex items-center gap-2",
+                              isActiveRoute && "bg-accent text-accent-foreground"
+                            )}
+                          >
+                            <Icon className="h-4 w-4" />
+                            <span>{item.label}</span>
+                          </NavigationMenuLink>
+                        </NavigationMenuItem>
                       )
                     })}
-                  </nav>
+                  </NavigationMenuList>
+                </NavigationMenu>
 
-                  {/* Navegación móvil simplificada */}
-                  <div className="md:hidden flex items-center space-x-2">
-                    {navigationItems.map((item) => {
-                      const Icon = item.icon
-                      const isActiveRoute = location.pathname === item.path
-                      return (
-                        <Button
-                          key={item.path}
-                          variant={isActiveRoute ? 'default' : 'ghost'}
-                          size="sm"
-                          onClick={() => navigate(item.path)}
-                        >
-                          <Icon className="h-4 w-4" />
-                        </Button>
-                      )
-                    })}
-                  </div>
+                {/* Navegación móvil simplificada */}
+                <div className="md:hidden flex items-center space-x-2">
+                  {navigationItems.map((item) => {
+                    const Icon = item.icon
+                    const isActiveRoute = location.pathname === item.path
+                    return (
+                      <Button
+                        key={item.path}
+                        variant={isActiveRoute ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => navigate(item.path)}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </Button>
+                    )
+                  })}
                 </div>
 
                 {/* Botón Logout */}
                 <Button variant="outline" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
-                  Cerrar Sesión
+                  <span className="hidden md:inline">Cerrar Sesión</span>
                 </Button>
               </div>
             </div>
