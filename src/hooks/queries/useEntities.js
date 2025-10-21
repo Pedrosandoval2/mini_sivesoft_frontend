@@ -9,11 +9,11 @@ import { getEntities } from '@/services/entities/getEntites'
  * @param {string} params.search - Término de búsqueda
  * @returns {Object} - Objeto con data, isLoading, error y helpers de React Query
  */
-export const useEntities = ({ page = 1, limit = 10, search = '' }) => {
+export const useEntities = ({ page = 1, limit = 10, search = '', onlyUnassigned }) => {
   return useQuery({
-    queryKey: ['entities', { page, limit, search }],
+    queryKey: ['entities', { page, limit, search, onlyUnassigned }],
     queryFn: async () => {
-      const response = await getEntities({ page, limit, query: search })
+      const response = await getEntities({ page, limit, query: search, onlyUnassigned })
       return response.data
     },
     placeholderData: (previousData) => previousData,
