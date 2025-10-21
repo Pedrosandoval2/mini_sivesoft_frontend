@@ -243,14 +243,14 @@ export default function NewInventorySheetPage() {
     defaultValues: inventorySheet
       ? defaultValues
       : {
-          sheet: {
-            warehouseId: '',
-            emissionDate: '',
-            state: 'registrado',
-            serie: 'INV',
-          },
-          details: [initialProducts],
+        sheet: {
+          warehouseId: '',
+          emissionDate: '',
+          state: 'registrado',
+          serie: 'INV',
         },
+        details: [initialProducts],
+      },
   });
 
   // 📝 useFieldArray: Manejo dinámico del array de productos
@@ -395,7 +395,7 @@ export default function NewInventorySheetPage() {
   const loadingButtonText = isEditMode ? 'Actualizando...' : 'Guardando...';
 
   return (
-    <div className=" bg-gray-50 p-6">
+    <div className=" bg-gray-50 md:p-6">
       <div className="mx-auto max-w-5xl">
         {/* 🔙 Header con botón de volver y título dinámico */}
         <div className="flex items-center space-x-4 mb-8">
@@ -417,9 +417,8 @@ export default function NewInventorySheetPage() {
                 Información de la Hoja
               </span>
               <ChevronDown
-                className={`h-5 w-5 transition-transform ${
-                  isSheetOpen ? 'rotate-180' : ''
-                }`}
+                className={`h-5 w-5 transition-transform ${isSheetOpen ? 'rotate-180' : ''
+                  }`}
               />
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-4 space-y-6">
@@ -568,9 +567,8 @@ export default function NewInventorySheetPage() {
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md p-2 hover:bg-gray-50">
                 <span className="font-semibold text-foreground">Items</span>
                 <ChevronDown
-                  className={`h-5 w-5 transition-transform ${
-                    isItemsOpen ? 'rotate-180' : ''
-                  }`}
+                  className={`h-5 w-5 transition-transform ${isItemsOpen ? 'rotate-180' : ''
+                    }`}
                 />
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-4 space-y-6">
@@ -582,46 +580,45 @@ export default function NewInventorySheetPage() {
                     <h3 className="font-semibold text-foreground">
                       Item {index + 1}
                     </h3>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-center md:justify-end">
+                      <div className="flex items-center gap-3 md:justify-end justify-start md:flex-row flex-col w-full md:w-auto md:gap-4">
                         {fields.length - 1 === index && (
                           <Button
                             size="sm"
                             type="button"
-                            className="text-white bg-green-600 hover:bg-green-700"
+                            className="text-white bg-green-600 hover:bg-green-700 w-full md:w-auto"
                             onClick={handleScanBarcode}
                           >
                             Escanear Código
                           </Button>
                         )}
-                        <div>
-                          <Button
-                            onClick={() => setIsModalOpenCodes(true)}
-                            type="button"
-                            size="sm"
-                            className="hover:bg-blue-700 bg-blue-600"
-                          >
-                            Escanear códigos
-                          </Button>
-
-                          <CodesModal
-                            isOpen={isModalOpenCodes}
-                            onClose={() => setIsModalOpenCodes(false)}
-                            onAddCodes={handleAddMultiCodes}
-                          />
-                        </div>
-                      </div>
-                      {fields.length > 1 && (
                         <Button
+                          onClick={() => setIsModalOpenCodes(true)}
                           type="button"
-                          variant="ghost"
                           size="sm"
-                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => remove(index)}
+                          className="hover:bg-blue-700 bg-blue-600 w-full md:w-auto"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          Escanear códigos
                         </Button>
-                      )}
+
+                        <CodesModal
+                          isOpen={isModalOpenCodes}
+                          onClose={() => setIsModalOpenCodes(false)}
+                          onAddCodes={handleAddMultiCodes}
+                        />
+                        {fields.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:bg-red-50 hover:text-red-700 flex-1 md:border md:rounded w-full md:w-auto p-2"
+                            onClick={() => remove(index)}
+                          >
+                            <Trash2 className="h-4 w-4 md:block" />
+                            <p>Eliminar</p>
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -670,7 +667,7 @@ export default function NewInventorySheetPage() {
                               onValueChange={field.onChange}
                               defaultValue={field.value}
                             >
-                              <SelectTrigger id={`unit-${item.id}`}>
+                              <SelectTrigger id={`unit-${item.id}`} className='w-full'>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>

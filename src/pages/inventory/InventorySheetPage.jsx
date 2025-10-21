@@ -122,7 +122,7 @@ export default function InventorySheetPage() {
     const stateApprovated = (state) => state === 'aprobado'
 
     return (
-        <div className=" bg-gray-50 p-6">
+        <div className=" bg-gray-50 md:p-6">
             <div className="max-w-6xl mx-auto space-y-6">
                 <Card>
                     <CardHeader>
