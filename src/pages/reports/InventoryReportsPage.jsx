@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Download, ChevronDown, ChevronUp, ChevronLeft, ChevronRight} from "lucide-react"
+import { Search, Download, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import * as XLSX from "xlsx"
@@ -71,7 +71,7 @@ export default function InventoryReportsPage() {
     }
 
     const handleExport = () => {
-         if (inventorySheets.length === 0) {
+        if (inventorySheets.length === 0) {
             toast.info("No hay datos para exportar")
             return
         }
@@ -213,12 +213,12 @@ export default function InventoryReportsPage() {
     }
 
     return (
-        <div className=" bg-gray-50 p-6">
+        <div className=" bg-gray-50 md:p-6">
             <div className="mx-auto max-w-7xl">
-                <h1 className="mb-8 text-3xl font-bold text-foreground">Hoja de Inventario</h1>
-
                 <div className="rounded-lg bg-white p-6 shadow-sm">
+                    <h1 className="mb-3 text-3xl font-bold text-foreground">Reporte Hoja de inventario</h1>
                     <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+
                         <div className="space-y-2">
                             <Label htmlFor="warehouse">Almacén:</Label>
                             <Select value={warehouseId} onValueChange={setWarehouseId}>
