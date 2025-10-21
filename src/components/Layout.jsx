@@ -101,16 +101,8 @@ export default function Layout({ children }) {
                             className="w-full justify-start"
                             onClick={() => navigate('/accounts')}
                           >
-                            <User className="h-4 w-4 mr-2" />
-                            Ver Cuentas
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start"
-                            onClick={() => navigate('/accounts/new')}
-                          >
                             <UserPlus className="h-4 w-4 mr-2" />
-                            Crear Cuenta
+                            Cuentas
                           </Button>
                         </div>
                       </PopoverContent>
