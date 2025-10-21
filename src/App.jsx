@@ -22,6 +22,7 @@ const EntitiesPage = lazy(() => import('./pages/entities/EntitiesPage'))
 const NewEntityPage = lazy(() => import('./pages/entities/NewEntityPage'))
 const InventoryReportsPage = lazy(() => import('./pages/reports/InventoryReportsPage'))
 const ConfigurationsPage = lazy(() => import('./pages/configurations/ConfigurationsPage'))
+const NewAccountPage = lazy(() => import('./pages/accounts/NewAccountPage'))
 
 function App() {
   // Obtener el usuario del store para verificar el token
@@ -54,6 +55,7 @@ function App() {
                 <Route path="/entidades/new" element={<NewEntityPage />} />
                 <Route path="/reportes" element={<InventoryReportsPage />} />
                 <Route path="/configuraciones" element={<ConfigurationsPage />} />
+                <Route path="/accounts/new" element={<NewAccountPage />} />
               </Routes>
             </Layout>
           ) : (
