@@ -113,11 +113,11 @@ export default function AccountsPage() {
             <div className="max-w-6xl mx-auto space-y-6">
                 <Card>
                     <CardHeader>
-                        <div className="flex justify-between items-center">
+                        <div className="mb-6 flex items-center justify-center flex-col md:justify-between md:flex-row">
                             <CardTitle className="text-2xl font-bold">
-                                Cuentas de Usuario
+                                Cuentas de acceso
                             </CardTitle>
-                            <Button onClick={() => navigate('/accounts/new')}>
+                            <Button onClick={() => navigate('/accounts/new')} className='mt-2 w-full md:mt-0 md:w-auto'>
                                 <Plus className="h-4 w-4 mr-2" />
                                 Nueva Cuenta
                             </Button>
@@ -250,7 +250,7 @@ export default function AccountsPage() {
                         </div>
 
                         {/* Paginación */}
-                        <div className="flex items-center gap-2 mt-4">
+                        <div className="flex items-center gap-2 mt-4 md:justify-start justify-center">
                             <div className="flex items-center gap-1">
                                 <Button
                                     variant="outline"

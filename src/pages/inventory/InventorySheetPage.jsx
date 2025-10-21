@@ -126,18 +126,19 @@ export default function InventorySheetPage() {
             <div className="max-w-6xl mx-auto space-y-6">
                 <Card>
                     <CardHeader>
-                        <div className="md:flex md:justify-between md:items-center md:gap-0 gap-2.5">
-                            <CardTitle className="text-2xl font-bold">
+                        <div className="md:flex md:justify-between md:items-center md:gap-0 gap-2.5 flex-wrap">
+                            <CardTitle className="text-3xl font-bold mb-2">
                                 Hojas de Inventario
                             </CardTitle>
-                            <div className="md:flex md:items-end md:gap-4 block  ">
-                                <div className='flex gap-2 mt-2'>
+                            <div className="md:flex md:items-end md:gap-4 block">
+                                <div className='flex gap-2 mt-2 md:flex-row flex-col'>
                                     <div className="space-y-2 w-full md:w-auto">
                                         <Label htmlFor="dateFrom">Fecha:</Label>
                                         <Input
                                             id="dateFrom"
                                             type="date"
                                             value={dateFrom}
+                                            className='flex justify-center md:flex-none'
                                             onChange={(e) => setDateFrom(e.target.value)}
                                             placeholder="04/07/2025"
                                         />
@@ -148,6 +149,7 @@ export default function InventorySheetPage() {
                                         <Input
                                             id="dateTo"
                                             type="date"
+                                            className='flex justify-center md:flex-none'
                                             value={dateTo}
                                             onChange={(e) => setDateTo(e.target.value)}
                                             placeholder="10/07/2025"
@@ -169,7 +171,7 @@ export default function InventorySheetPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                {<Button onClick={() => navigate('/inventory-sheets/new')}>
+                                {<Button onClick={() => navigate('/inventory-sheets/new')} className='md:w-auto w-full'>
                                     <Plus className="h-4 w-4 mr-2" />
                                     Nueva Hoja de Inventario
                                 </Button>}
@@ -271,7 +273,7 @@ export default function InventorySheetPage() {
                             </Table>
                         </div>
 
-                        <div className="flex items-center gap-2 mt-4">
+                        <div className="flex items-center gap-2 mt-4 md:justify-start justify-center">
                             <div className="flex items-center gap-1">
                                 <Button
                                     variant="outline"

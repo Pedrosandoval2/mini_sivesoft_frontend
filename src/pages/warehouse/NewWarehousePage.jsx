@@ -64,7 +64,7 @@ export default function NewWarehousePage() {
   const isLoading = createMutation.isPending || updateMutation.isPending
 
   return (
-    <div className="bg-gray-50 p-6">
+    <div className="bg-gray-50 p-">
       <div className="max-w-2xl mx-auto space-y-6">
         <Button variant="ghost" onClick={() => navigate('/warehouses')} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
@@ -111,7 +111,7 @@ export default function NewWarehousePage() {
                           {entitiesLoading ? (
                             <div className="p-4 text-center text-gray-500">Cargando...</div>
                           ) : (
-                            data.data?.map((owner) => (
+                            data?.data?.map((owner) => (
                               <SelectItem key={owner.id} value={String(owner.id)}>
                                 {owner.name}
                               </SelectItem>
@@ -157,17 +157,8 @@ export default function NewWarehousePage() {
                 </Label>
               </div>
 
-              <div className="flex gap-4 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate('/warehouses')}
-                  className="flex-1"
-                  disabled={isLoading}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" className="flex-1" disabled={isLoading}>
+              <div className="flex gap-4 pt-4 md:flex-row flex-col">
+              <Button type="submit" className="flex-1" disabled={isLoading}>
                   {isLoading ? (
                     <>
                       <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -176,6 +167,15 @@ export default function NewWarehousePage() {
                   ) : (
                     <>{warehouse ? 'Actualizar Almacén' : 'Crear Almacén'}</>
                   )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/warehouses')}
+                  className="flex-1"
+                  disabled={isLoading}
+                >
+                  Cancelar
                 </Button>
               </div>
             </form>

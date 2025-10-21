@@ -72,13 +72,13 @@ export default function WarehousesPage() {
       <div className="max-w-6xl mx-auto space-y-6">
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center md:flex-row flex-col">
               <CardTitle className="text-2xl font-bold">
                 Almacenes
               </CardTitle>
               {role !== 'user' && (
-                <Button onClick={() => navigate('/warehouses/new')}>
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button onClick={() => navigate('/warehouses/new')} className='w-full mt-2 md:w-auto md:mt-0'>
+                  <Plus className="h-4 md:w-4 mr-2" />
                   Nuevo Almacén
                 </Button>
               )}
@@ -131,7 +131,7 @@ export default function WarehousesPage() {
                         <TableHead>Propietario</TableHead>
                         <TableHead>Dirección</TableHead>
                         <TableHead>Estado</TableHead>
-                        {role !== 'user' && <TableHead>Acciones</TableHead>}
+                        {role !== 'user' && <TableHead className='text-center'>Acciones</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -142,7 +142,7 @@ export default function WarehousesPage() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        data?.data?.map((warehouse) => (
+                        data?.data.map((warehouse) => (
                           <TableRow key={warehouse.id}>
                             <TableCell className="font-medium">
                               {formatNumberWithZero(warehouse.serieWarehouse || warehouse.id)}
@@ -156,7 +156,7 @@ export default function WarehousesPage() {
                               </Badge>
                             </TableCell>
                             {role !== 'user' && (
-                              <TableCell>
+                              <TableCell className='flex justify-center'>
                                 <div className="flex gap-2">
                                   <Button
                                     variant="ghost"
@@ -184,7 +184,7 @@ export default function WarehousesPage() {
                 </div>
 
                 {/* Paginación */}
-                <div className="flex items-center justify-start">
+                <div className="flex items-center md:justify-end justify-center">
                   <div className="flex gap-2">
                     <Button
                       variant="outline"

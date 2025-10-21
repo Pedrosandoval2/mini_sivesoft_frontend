@@ -280,8 +280,8 @@ export default function InventoryReportsPage() {
                         </div>
                     </div>
 
-                    <div className="mb-6 flex gap-3 justify-between">
-                        <div className="flex gap-3">
+                    <div className="mb-6 flex gap-3 justify-between md:flex-row flex-col">
+                        <div className="flex gap-3 flex-col md:flex-row">
                             <Button onClick={handleShow} className="bg-blue-600 text-white hover:bg-blue-700">
                                 <Search className="mr-2 h-4 w-4" />
                                 Mostrar
