@@ -1,4 +1,5 @@
-import axios from '@/api/axios.config'
+import axiosInstance from "@/api/axios.config";
+
 
 /**
  * Servicio para obtener lista de usuarios/cuentas con paginación y búsqueda
@@ -9,12 +10,11 @@ import axios from '@/api/axios.config'
  * @returns {Promise} - Respuesta del servidor con lista de usuarios
  */
 export const getAccounts = async ({ page = 1, limit = 10, query = '' }) => {
-  const response = await axios.get('/users', {
-    params: {
-      page,
-      limit,
-      search: query
-    }
-  })
-  return response
+
+    const paramsObj = {};
+    if (page) paramsObj.page = page;
+    if (limit) paramsObj.limit = limit;
+    if (query) paramsObj.query = query;
+
+    return axiosInstance.get(`/users`, { params: paramsObj });
 }

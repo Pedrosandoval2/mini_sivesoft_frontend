@@ -12,11 +12,7 @@ import { getAccounts } from '@/services/accounts/getAccounts'
 export const useAccounts = ({ page = 1, limit = 10, search = '' }) => {
   return useQuery({
     queryKey: ['accounts', { page, limit, search }],
-    queryFn: async () => {
-      const response = await getAccounts({ page, limit, query: search })
-      return response.data
-    },
-    // Mantener datos previos mientras se cargan nuevos (evita "flash" de loading)
-    placeholderData: (previousData) => previousData,
+    queryFn: () => getAccounts({ page, limit, query: search }),
+    keepPreviousData: true,
   })
 }
