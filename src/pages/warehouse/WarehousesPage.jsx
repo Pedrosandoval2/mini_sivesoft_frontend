@@ -21,6 +21,7 @@ import { useDebounce } from '@/hooks/useDebounce'
 import { formatNumberWithZero } from '@/utils/formatNumberWithZero'
 import { useWarehouses } from '@/hooks/queries/useWarehouses'
 import { useDeleteWarehouse } from '@/hooks/mutations/useWarehouseMutations'
+import { isUser } from '@/utils/IsUser'
 
 export default function WarehousesPage() {
   const role = useUserStore((state) => state.user.role)
@@ -68,15 +69,15 @@ export default function WarehousesPage() {
   }
 
   return (
-    <div className="bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="bg-gray-50 md:p-6">
+      <div className="mx-auto space-y-6 md:max-w-6xl">
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center md:flex-row flex-col">
               <CardTitle className="text-2xl font-bold">
                 Almacenes
               </CardTitle>
-              {role !== 'user' && (
+              {!isUser(role) && (
                 <Button onClick={() => navigate('/warehouses/new')} className='w-full mt-2 md:w-auto md:mt-0'>
                   <Plus className="h-4 md:w-4 mr-2" />
                   Nuevo Almacén

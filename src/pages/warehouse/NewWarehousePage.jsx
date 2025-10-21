@@ -31,7 +31,7 @@ export default function NewWarehousePage() {
       name: warehouse?.name || '',
       address: warehouse?.address || '',
       isActive: warehouse?.isActive || false,
-      ownerId: warehouse?.owner.id ? String(warehouse.owner.id) : '',
+      ownerId: warehouse?.owner?.id ? String(warehouse?.owner?.id) : '',
     },
   })
 
