@@ -148,9 +148,6 @@ export default function NewInventorySheetPage() {
           })
         })
 
-        // Agregar un item vacío al final
-        append(initialProducts)
-
         // Actualizar toast de carga a éxito
         toast.update(loadingToastId, {
           render: `${successResults.length} producto(s) agregado(s) exitosamente`,
