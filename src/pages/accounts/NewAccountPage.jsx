@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useForm, Controller } from 'react-hook-form'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -7,11 +7,11 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useCreateAccount } from '@/hooks/mutations/useAccountMutations'
+import { useCreateAccount, useUpdateAccount } from '@/hooks/mutations/useAccountMutations'
 import { useEntities } from '@/hooks/queries/useEntities'
 import { useWarehouses } from '@/hooks/queries/useWarehouses'
 import { useUserStore } from '@/store/userStore'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 /**
  * Página para crear cuentas de usuario
@@ -25,9 +25,12 @@ import { useState } from 'react'
  */
 export default function NewAccountPage() {
     const navigate = useNavigate()
+    const location = useLocation()
+    const { account } = location.state || {}
+
     const [showPassword, setShowPassword] = useState(false)
     const [selectedWarehouses, setSelectedWarehouses] = useState([])
-    
+
     // Obtener tenant actual del usuario autenticado
     const currentTenant = useUserStore((state) => state.user?.tenantId)
 
@@ -35,7 +38,8 @@ export default function NewAccountPage() {
     const { data: entitiesData, isLoading: entitiesLoading } = useEntities({
         page: 1,
         limit: 100,
-        search: ''
+        search: '',
+        onlyUnassigned: true
     })
 
     const { data: warehousesData, isLoading: warehousesLoading } = useWarehouses({
@@ -44,7 +48,7 @@ export default function NewAccountPage() {
         search: ''
     })
 
-    const { register, handleSubmit, formState: { errors }, control } = useForm({
+    const { register, handleSubmit, formState: { errors }, control, reset } = useForm({
         defaultValues: {
             username: '',
             password: '',
@@ -54,6 +58,26 @@ export default function NewAccountPage() {
     })
 
     const createAccountMutation = useCreateAccount()
+    const updateAccountMutation = useUpdateAccount()
+
+    // Cargar datos del usuario a editar
+    useEffect(() => {
+        if (account) {
+            // Obtener el entityRelationId ya sea del campo directo o del objeto entityRelation
+            const entityId = account.entityRelation?.id || account.entityRelationId || ''
+
+            reset({
+                username: account.username || '',
+                password: '', // No pre-cargar contraseña por seguridad
+                role: account.role || 'user',
+                entityRelationId: entityId ? String(entityId) : ''
+            })
+
+            // Cargar almacenes seleccionados
+            const warehouseIds = account.warehouses?.map(w => w.id) || []
+            setSelectedWarehouses(warehouseIds)
+        }
+    }, [account, reset])
 
     /**
      * Toggle selección de almacén
@@ -72,24 +96,37 @@ export default function NewAccountPage() {
      * Enviar formulario
      */
     const onSubmit = async (data) => {
+        console.log("🚀 ~ onSubmit ~ data:", data)
         try {
             const accountData = {
                 username: data.username,
-                password: data.password,
                 role: data.role,
-                tenantIds: [currentTenant], // Automáticamente la empresa actual
-                entityRelationId: data.entityRelationId || null,
+                tenantIds: account ? account.tenantIds : [currentTenant], // Mantener tenants en edición
+                entityRelationId: Number(data.entityRelationId) || null,
                 warehouseIds: selectedWarehouses
             }
 
-            await createAccountMutation.mutateAsync(accountData)
+            // Solo incluir password si hay valor (crear o actualizar contraseña)
+            if (data.password) {
+                accountData.password = data.password
+            }
+
+            if (account) {
+                // Actualizar cuenta existente
+                await updateAccountMutation.mutateAsync({ id: account.id, data: accountData })
+            } else {
+                // Crear nueva cuenta
+                await createAccountMutation.mutateAsync(accountData)
+            }
+
             navigate('/accounts')
         } catch (error) {
             console.error('Error submitting account:', error)
         }
     }
 
-    const isLoading = createAccountMutation.isPending
+    const isLoading = createAccountMutation.isPending || updateAccountMutation.isPending
+    const isEditMode = Boolean(account)
 
     return (
         <div className="p-6 space-y-6">
@@ -99,9 +136,14 @@ export default function NewAccountPage() {
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div>
-                    <h1 className="text-3xl font-bold">Nueva Cuenta</h1>
+                    <h1 className="text-3xl font-bold">
+                        {isEditMode ? 'Editar Cuenta' : 'Nueva Cuenta'}
+                    </h1>
                     <p className="text-gray-500 mt-1">
-                        Completa el formulario para crear una nueva cuenta de usuario
+                        {isEditMode
+                            ? 'Actualiza la información de la cuenta de usuario'
+                            : 'Completa el formulario para crear una nueva cuenta de usuario'
+                        }
                     </p>
                 </div>
             </div>
@@ -111,7 +153,10 @@ export default function NewAccountPage() {
                 <CardHeader>
                     <CardTitle>Información de la Cuenta</CardTitle>
                     <CardDescription>
-                        Ingresa los datos del usuario y asigna los almacenes correspondientes
+                        {isEditMode
+                            ? 'Modifica los datos del usuario y los almacenes asignados'
+                            : 'Ingresa los datos del usuario y asigna los almacenes correspondientes'
+                        }
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -142,15 +187,16 @@ export default function NewAccountPage() {
                             {/* Password */}
                             <div className="space-y-2">
                                 <Label htmlFor="password">
-                                    Contraseña <span className="text-red-500">*</span>
+                                    Contraseña {!isEditMode && <span className="text-red-500">*</span>}
+                                    {isEditMode && <span className="text-sm text-gray-500 ml-1">(opcional - dejar vacío para mantener la actual)</span>}
                                 </Label>
                                 <div className="relative">
                                     <Input
                                         id="password"
                                         type={showPassword ? 'text' : 'password'}
-                                        placeholder="Ingresa una contraseña"
+                                        placeholder={isEditMode ? 'Dejar vacío para no cambiar' : 'Ingresa una contraseña'}
                                         {...register('password', {
-                                            required: 'La contraseña es requerida',
+                                            required: isEditMode ? false : 'La contraseña es requerida',
                                             minLength: {
                                                 value: 6,
                                                 message: 'Mínimo 6 caracteres'
@@ -189,7 +235,7 @@ export default function NewAccountPage() {
                                                 Rol <span className="text-red-500">*</span>
                                             </Label>
                                             <Select
-                                                value={field.value}
+                                                value={field.value.toString()}
                                                 onValueChange={field.onChange}
                                             >
                                                 <SelectTrigger className={errors.role ? 'border-red-500' : ''}>
@@ -197,7 +243,6 @@ export default function NewAccountPage() {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="user">Usuario</SelectItem>
-                                                    <SelectItem value="admin">Administrador</SelectItem>
                                                     <SelectItem value="manager">Manager</SelectItem>
                                                 </SelectContent>
                                             </Select>
@@ -220,7 +265,7 @@ export default function NewAccountPage() {
                                                 Entidad Relacionada <span className="text-gray-500 text-xs">(Opcional)</span>
                                             </Label>
                                             <Select
-                                                value={field.value || undefined}
+                                                value={field.value.toString() || undefined}
                                                 onValueChange={field.onChange}
                                             >
                                                 <SelectTrigger>
@@ -243,19 +288,6 @@ export default function NewAccountPage() {
                                         </div>
                                     )}
                                 />
-                            </div>
-                        </div>
-
-                        {/* Empresa Asignada (Read-only) */}
-                        <div className="space-y-2">
-                            <Label>Empresa Asignada</Label>
-                            <div className="p-3 bg-gray-100 rounded-md">
-                                <p className="text-sm text-gray-700">
-                                    📍 Se asignará automáticamente a la empresa actual: <strong>{currentTenant || 'No definida'}</strong>
-                                </p>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    La cuenta se creará dentro de la empresa en la que estás trabajando actualmente.
-                                </p>
                             </div>
                         </div>
 
@@ -289,9 +321,6 @@ export default function NewAccountPage() {
                                     <p className="text-gray-500">No hay almacenes disponibles</p>
                                 )}
                             </Card>
-                            {selectedWarehouses.length === 0 && (
-                                <p className="text-sm text-amber-600">⚠️ Debes seleccionar al menos un almacén</p>
-                            )}
                         </div>
 
                         {/* Botones de Acción */}
@@ -304,11 +333,16 @@ export default function NewAccountPage() {
                             >
                                 Cancelar
                             </Button>
-                            <Button 
-                                type="submit" 
+                            <Button
+                                type="submit"
                                 disabled={isLoading || selectedWarehouses.length === 0}
                             >
-                                {isLoading ? 'Creando...' : 'Crear Cuenta'}
+                                {(() => {
+                                    if (isLoading) {
+                                        return isEditMode ? 'Actualizando...' : 'Creando...'
+                                    }
+                                    return isEditMode ? 'Actualizar Cuenta' : 'Crear Cuenta'
+                                })()}
                             </Button>
                         </div>
                     </form>
