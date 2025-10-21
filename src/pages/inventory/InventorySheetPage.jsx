@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Plus, Search, ChevronLeft, ChevronRight, Pencil, Trash2, Download } from 'lucide-react'
 
-import { useUserStore } from '@/store/userStore'
 import { useInventorySheets } from '@/hooks/queries/useInventorySheets'
 import { useDeleteInventorySheet } from '@/hooks/mutations/useInventorySheetMutations'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -32,7 +31,6 @@ import * as XLSX from "xlsx"
 
 
 export default function InventorySheetPage() {
-    const role = useUserStore((state) => state.user.role)
 
     const [searchQuery, setSearchQuery] = useState('')
     const [filterState, setFilterState] = useState('')
@@ -171,7 +169,7 @@ export default function InventorySheetPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                {role !== 'user' && <Button onClick={() => navigate('/inventory-sheets/new')}>
+                                {<Button onClick={() => navigate('/inventory-sheets/new')}>
                                     <Plus className="h-4 w-4 mr-2" />
                                     Nueva Hoja de Inventario
                                 </Button>}
@@ -203,7 +201,7 @@ export default function InventorySheetPage() {
                                         <TableHead>Razón Social</TableHead>
                                         <TableHead>Usuario</TableHead>
                                         <TableHead>Estado</TableHead>
-                                        {role !== 'user' && <TableHead></TableHead>}
+                                        {<TableHead></TableHead>}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -237,7 +235,7 @@ export default function InventorySheetPage() {
                                                 </TableCell>
                                                 <TableCell>
                                                     <div className="flex gap-2 text-gray-400">
-                                                        {role !== 'user' && stateApprovated(sheet.state) && (
+                                                        {stateApprovated(sheet.state) && (
                                                             <>
                                                                 <Button
                                                                     variant="ghost"
