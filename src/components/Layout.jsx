@@ -13,15 +13,16 @@ export default function Layout({ children }) {
   const queryClient = useQueryClient()
 
   const handleLogout = () => {
+
     // Limpiar el store de usuario
     clearUser()
-    
+
     // Limpiar el caché de React Query
     queryClient.clear()
-    
+
     // Cancelar todas las queries en ejecución
     queryClient.cancelQueries()
-    
+
     // Navegar al login
     navigate('/login', { replace: true })
   }
@@ -61,8 +62,9 @@ export default function Layout({ children }) {
           <header className="bg-white shadow-sm border-b">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between items-center h-16">
+                {/* Logo y Usuario */}
                 <div className="items-center space-x-4 flex">
-                  <div className=' flex flex-col items-center justify-center'>
+                  <div className='flex flex-col items-center justify-center'>
                     <Building2 className="h-8 w-8 text-blue-600" />
                     <p className="text-sm text-gray-500">
                       User: {user?.nameEntity || 'Admin'}
@@ -70,15 +72,16 @@ export default function Layout({ children }) {
                   </div>
                 </div>
 
+                {/* Navegación Desktop */}
                 <div className="flex items-center space-x-4">
                   <nav className="hidden md:flex items-center space-x-4">
                     {navigationItems.map((item) => {
                       const Icon = item.icon
-                      const isActive = location.pathname === item.path
+                      const isActiveRoute = location.pathname === item.path
                       return (
                         <Button
                           key={item.path}
-                          variant={isActive ? 'default' : 'ghost'}
+                          variant={isActiveRoute ? 'default' : 'ghost'}
                           onClick={() => navigate(item.path)}
                           className="flex items-center space-x-2"
                         >
@@ -93,11 +96,11 @@ export default function Layout({ children }) {
                   <div className="md:hidden flex items-center space-x-2">
                     {navigationItems.map((item) => {
                       const Icon = item.icon
-                      const isActive = location.pathname === item.path
+                      const isActiveRoute = location.pathname === item.path
                       return (
                         <Button
                           key={item.path}
-                          variant={isActive ? 'default' : 'ghost'}
+                          variant={isActiveRoute ? 'default' : 'ghost'}
                           size="sm"
                           onClick={() => navigate(item.path)}
                         >
@@ -108,6 +111,7 @@ export default function Layout({ children }) {
                   </div>
                 </div>
 
+                {/* Botón Logout */}
                 <Button variant="outline" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Cerrar Sesión
@@ -120,8 +124,11 @@ export default function Layout({ children }) {
             {children}
           </main>
         </div>
-      ) : (<>{children}</>)
-      }
+      ) : (
+        <>{children}</>
+      )}
     </>
   )
 }
+
+
