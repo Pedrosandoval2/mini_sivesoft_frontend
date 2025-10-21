@@ -8,6 +8,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { isUser } from '@/utils/IsUser'
 
 export default function Layout({ children }) {
   const navigate = useNavigate()
@@ -96,14 +97,14 @@ export default function Layout({ children }) {
                             <User className="h-4 w-4 mr-2" />
                             Entidades
                           </Button>
-                          <Button
+                          {!isUser(user?.role) && <Button
                             variant="ghost"
                             className="w-full justify-start"
                             onClick={() => navigate('/accounts')}
                           >
                             <UserPlus className="h-4 w-4 mr-2" />
                             Cuentas
-                          </Button>
+                          </Button>}
                         </div>
                       </PopoverContent>
                     </Popover>
@@ -125,9 +126,6 @@ export default function Layout({ children }) {
                     })}
 
                   </nav>
-
-
-
 
                   {/* Navegación móvil simplificada */}
                   <div className="md:hidden flex items-center space-x-2">
@@ -167,15 +165,6 @@ export default function Layout({ children }) {
                             className="w-full justify-start"
                             onClick={() => navigate('/accounts')}
                           >
-                            <User className="h-4 w-4 mr-2" />
-                            Ver Cuentas
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full justify-start"
-                            onClick={() => navigate('/accounts/new')}
-                          >
                             <UserPlus className="h-4 w-4 mr-2" />
                             Crear Cuenta
                           </Button>
@@ -207,7 +196,7 @@ export default function Layout({ children }) {
             </div>
           </header>
 
-          <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <main className="max-w-7xl mx-auto py-3 px-3 sm:px-6 lg:px-8">
             {children}
           </main>
         </div>
