@@ -184,10 +184,7 @@ export default function WarehousesPage() {
                 </div>
 
                 {/* Paginación */}
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-gray-600">
-                    Mostrando {data?.data?.length || 0} de {data?.total || 0} almacenes
-                  </p>
+                <div className="flex items-center justify-start">
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -196,7 +193,6 @@ export default function WarehousesPage() {
                       disabled={page === 1 || isLoading}
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      Anterior
                     </Button>
                     <span className="flex items-center px-4 text-sm">
                       Página {page} de {data?.totalPages || 1}
@@ -207,7 +203,6 @@ export default function WarehousesPage() {
                       onClick={() => setPage((p) => p + 1)}
                       disabled={page >= (data?.totalPages || 1) || isLoading}
                     >
-                      Siguiente
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
