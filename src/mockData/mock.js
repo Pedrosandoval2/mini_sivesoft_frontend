@@ -250,3 +250,45 @@ export const entities = {
         },
     ]
 }
+
+export const productosMockData = {
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "name": "Arroz Blanco",
+                "unit": "kg",
+                "barcode": "1234567890123",
+                "price": 18.50
+            },
+            {
+                "id": 2,
+                "name": "Aceite de Oliva",
+                "unit": "lt",
+                "barcode": "2345678901234",
+                "price": 55.00
+            },
+            {
+                "id": 3,
+                "name": "Leche Entera",
+                "unit": "lt",
+                "barcode": "3456789012345",
+                "price": 22.75
+            },
+            {
+                "id": 4,
+                "name": "Pan Integral",
+                "unit": "pieza",
+                "barcode": "4567890123456",
+                "price": 12.00
+            },
+            {
+                "id": 5,
+                "name": "Huevos Orgánicos",
+                "unit": "docena",
+                "barcode": "5678901234567",
+                "price": 38.90
+            }
+        ]
+    }
+}
