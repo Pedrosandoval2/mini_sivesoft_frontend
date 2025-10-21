@@ -220,22 +220,23 @@ export default function NewAccountPage() {
                                                 Entidad Relacionada <span className="text-gray-500 text-xs">(Opcional)</span>
                                             </Label>
                                             <Select
-                                                value={field.value}
+                                                value={field.value || undefined}
                                                 onValueChange={field.onChange}
                                             >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Selecciona una entidad" />
+                                                    <SelectValue placeholder="Selecciona una entidad o deja vacío" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    <SelectItem value="">Ninguna</SelectItem>
                                                     {entitiesLoading ? (
-                                                        <SelectItem value="" disabled>Cargando...</SelectItem>
-                                                    ) : (
-                                                        entitiesData?.data?.map((entity) => (
+                                                        <div className="p-2 text-sm text-gray-500">Cargando...</div>
+                                                    ) : entitiesData?.data?.length > 0 ? (
+                                                        entitiesData.data.map((entity) => (
                                                             <SelectItem key={entity.id} value={String(entity.id)}>
                                                                 {entity.name}
                                                             </SelectItem>
                                                         ))
+                                                    ) : (
+                                                        <div className="p-2 text-sm text-gray-500">No hay entidades disponibles</div>
                                                     )}
                                                 </SelectContent>
                                             </Select>
