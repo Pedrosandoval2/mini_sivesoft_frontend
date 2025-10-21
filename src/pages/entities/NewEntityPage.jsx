@@ -94,12 +94,12 @@ export default function NewEntityPage() {
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <div className=" bg-gray-50 p-6">
+    <div className=" bg-gray-50 md:p-6">
       <div className="mx-auto max-w-3xl">
         <div className="mb-6 flex items-center gap-4">
           <Button
             variant="ghost"
-            onClick={() => navigate('/warehouses')}
+            onClick={() => navigation('/entidades')}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver a Almacenes

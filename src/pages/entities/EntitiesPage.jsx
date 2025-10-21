@@ -72,12 +72,12 @@ export default function EntitiesPage() {
     }
 
     return (
-        <div className=" bg-gray-50 p-6">
+        <div className=" bg-gray-50 md:p-6">
             <div className="mx-auto max-w-7xl">
-                <div className="rounded-2xl bg-white p-8 shadow-sm">
-                    <div className="mb-6 flex items-center justify-center flex-col md:justify-between md:flex-row">
-                        <h1 className="text-3xl font-bold text-foreground">Entidades</h1>
-                        <Button className="bg-black text-white hover:bg-gray-800 w-full mt-3 md:w-auto md:mt-0" onClick={() => { navigation('/entidades/new') }}>
+                <div className="rounded-2xl bg-white md:p-8 shadow-sm p-5">
+                    <div className="mb-6 flex items-center justify-between md:flex-row flex-col">
+                        <h1 className="md:text-3xl font-bold text-foreground text-2xl md:mb-0 mb-2.5">Gestión de Entidades</h1>
+                        <Button className="bg-black text-white hover:bg-gray-800" onClick={() => { navigation('/entidades/new') }}>
                             <Plus className="mr-2 h-4 w-4" />
                             Nueva Entidad
                         </Button>
@@ -158,7 +158,7 @@ export default function EntitiesPage() {
                         </Table>
                     </div>
 
-                    <div className="flex items-center gap-2 mt-4 flex-col justify-center md:flex-row md:justify-start">
+                    <div className="flex items-center gap-2 mt-4">
                         <div className="flex items-center gap-1">
                             <Button
                                 variant="outline"
