@@ -22,7 +22,7 @@ const EntitiesPage = lazy(() => import('./pages/entities/EntitiesPage'))
 const NewEntityPage = lazy(() => import('./pages/entities/NewEntityPage'))
 const InventoryReportsPage = lazy(() => import('./pages/reports/InventoryReportsPage'))
 const ConfigurationsPage = lazy(() => import('./pages/configurations/ConfigurationsPage'))
-const AccountsPage = lazy(() => import('./pages/accounts/AccountsPage'))
+const AccountsListPage = lazy(() => import('./pages/accounts/AccountsListPage'))
 const NewAccountPage = lazy(() => import('./pages/accounts/NewAccountPage'))
 
 function App() {
@@ -56,7 +56,7 @@ function App() {
                 <Route path="/entidades/new" element={<NewEntityPage />} />
                 <Route path="/reportes" element={<InventoryReportsPage />} />
                 <Route path="/configuraciones" element={<ConfigurationsPage />} />
-                <Route path="/accounts" element={<AccountsPage />} />
+                <Route path="/accounts" element={<AccountsListPage />} />
                 <Route path="/accounts/new" element={<NewAccountPage />} />
               </Routes>
             </Layout>
