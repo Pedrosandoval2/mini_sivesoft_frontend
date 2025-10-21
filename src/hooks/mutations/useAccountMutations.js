@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createAccount } from '@/services/accounts/createAccount'
+import { updateAccount } from '@/services/accounts/updateAccount'
 import { deleteAccount } from '@/services/accounts/deleteAccount'
 import { toast } from 'react-toastify'
 
@@ -23,6 +24,30 @@ export const useCreateAccount = () => {
       const errorMessage = error.response?.data?.message || 'Error al crear la cuenta'
       toast.error(errorMessage)
       console.error('Error creating account:', error)
+    }
+  })
+}
+
+/**
+ * Hook para actualizar cuentas de usuario con React Query
+ * Incluye invalidación automática del caché y notificaciones toast
+ */
+export const useUpdateAccount = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }) => updateAccount(id, data),
+    onSuccess: () => {
+      // Invalidar caché de usuarios
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      
+      toast.success('Cuenta actualizada exitosamente')
+    },
+    onError: (error) => {
+      const errorMessage = error.response?.data?.message || 'Error al actualizar la cuenta'
+      toast.error(errorMessage)
+      console.error('Error updating account:', error)
     }
   })
 }
