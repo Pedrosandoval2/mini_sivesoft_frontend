@@ -8,6 +8,8 @@ import {
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
+  NavigationMenuTrigger,
+  NavigationMenuContent,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
 import { cn } from "@/lib/utils"
@@ -39,27 +41,44 @@ export default function Layout({ children }) {
     {
       path: '/warehouses',
       label: 'Almacenes',
-      icon: Package
+      icon: Package,
+      options: [
+        { path: '/warehouses', label: 'Ver Almacenes' },
+        { path: '/warehouses/new', label: 'Nuevo Almacén' }
+      ]
     },
     {
       path: '/products',
       label: 'Productos',
-      icon: Box
+      icon: Box,
+      options: [
+        { path: '/products', label: 'Ver Productos' },
+        { path: '/products/new', label: 'Nuevo Producto' }
+      ]
     },
     {
       path: '/inventory-sheets',
       label: 'Hoja de Inventario',
-      icon: FileText
+      icon: FileText,
+      options: [
+        { path: '/inventory-sheets', label: 'Ver Hojas' },
+        { path: '/inventory-sheets/new', label: 'Nueva Hoja' }
+      ]
     },
     {
       path: '/entidades',
       label: 'Entidades',
-      icon: User
+      icon: User,
+      options: [
+        { path: '/entidades', label: 'Ver Entidades' },
+        { path: '/entidades/new', label: 'Nueva Entidad' }
+      ]
     },
     {
       path: '/reportes',
       label: 'Reportes',
-      icon: File
+      icon: File,
+      options: []
     }
   ]
 
@@ -85,20 +104,56 @@ export default function Layout({ children }) {
                   <NavigationMenuList>
                     {navigationItems.map((item) => {
                       const Icon = item.icon
-                      const isActiveRoute = location.pathname === item.path
+                      const isActiveRoute = location.pathname.startsWith(item.path)
+                      
                       return (
                         <NavigationMenuItem key={item.path}>
-                          <NavigationMenuLink
-                            onClick={() => navigate(item.path)}
-                            className={cn(
-                              navigationMenuTriggerStyle(),
-                              "cursor-pointer flex items-center gap-2",
-                              isActiveRoute && "bg-accent text-accent-foreground"
-                            )}
-                          >
-                            <Icon className="h-4 w-4" />
-                            <span>{item.label}</span>
-                          </NavigationMenuLink>
+                          {item.options && item.options.length > 0 ? (
+                            // Item con submenú
+                            <>
+                              <NavigationMenuTrigger
+                                className={cn(
+                                  "flex items-center gap-2",
+                                  isActiveRoute && "bg-accent text-accent-foreground"
+                                )}
+                              >
+                                <Icon className="h-4 w-4" />
+                                <span>{item.label}</span>
+                              </NavigationMenuTrigger>
+                              <NavigationMenuContent>
+                                <ul className="grid w-[200px] gap-2 p-2">
+                                  {item.options.map((option) => (
+                                    <li key={option.path}>
+                                      <NavigationMenuLink
+                                        onClick={() => navigate(option.path)}
+                                        className={cn(
+                                          "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer",
+                                          location.pathname === option.path && "bg-accent text-accent-foreground"
+                                        )}
+                                      >
+                                        <div className="text-sm font-medium leading-none">
+                                          {option.label}
+                                        </div>
+                                      </NavigationMenuLink>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </NavigationMenuContent>
+                            </>
+                          ) : (
+                            // Item sin submenú
+                            <NavigationMenuLink
+                              onClick={() => navigate(item.path)}
+                              className={cn(
+                                navigationMenuTriggerStyle(),
+                                "cursor-pointer flex items-center gap-2",
+                                isActiveRoute && "bg-accent text-accent-foreground"
+                              )}
+                            >
+                              <Icon className="h-4 w-4" />
+                              <span>{item.label}</span>
+                            </NavigationMenuLink>
+                          )}
                         </NavigationMenuItem>
                       )
                     })}
