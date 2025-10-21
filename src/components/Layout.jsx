@@ -86,7 +86,7 @@ export default function Layout({ children }) {
                             onClick={() => navigate('/warehouses')}
                           >
                             <Package className="h-4 w-4 mr-2" />
-                            Almacén
+                            Almacenes
                           </Button>
                           <Button
                             variant="ghost"
@@ -95,6 +95,14 @@ export default function Layout({ children }) {
                           >
                             <User className="h-4 w-4 mr-2" />
                             Entidades
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => navigate('/accounts')}
+                          >
+                            <User className="h-4 w-4 mr-2" />
+                            Ver Cuentas
                           </Button>
                           <Button
                             variant="ghost"
@@ -150,7 +158,7 @@ export default function Layout({ children }) {
                             onClick={() => navigate('/warehouses')}
                           >
                             <Package className="h-4 w-4 mr-2" />
-                            Almacén
+                            Almacenes
                           </Button>
                           <Button
                             variant="ghost"
@@ -160,6 +168,15 @@ export default function Layout({ children }) {
                           >
                             <User className="h-4 w-4 mr-2" />
                             Entidades
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start"
+                            onClick={() => navigate('/accounts')}
+                          >
+                            <User className="h-4 w-4 mr-2" />
+                            Ver Cuentas
                           </Button>
                           <Button
                             variant="ghost"
