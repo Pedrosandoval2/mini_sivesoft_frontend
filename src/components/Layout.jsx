@@ -1,18 +1,13 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { LogOut, Package, Building2, FileText, User, File, Box } from 'lucide-react'
+import { LogOut, Package, Building2, FileText, User, File, Box, Settings } from 'lucide-react'
 import { useUserStore } from '@/store/userStore'
 import { useQueryClient } from '@tanstack/react-query'
 import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  NavigationMenuContent,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
-import { cn } from "@/lib/utils"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 export default function Layout({ children }) {
   const navigate = useNavigate()
@@ -23,16 +18,15 @@ export default function Layout({ children }) {
   const queryClient = useQueryClient()
 
   const handleLogout = () => {
-
     // Limpiar el store de usuario
     clearUser()
-
+    
     // Limpiar el caché de React Query
     queryClient.clear()
-
+    
     // Cancelar todas las queries en ejecución
     queryClient.cancelQueries()
-
+    
     // Navegar al login
     navigate('/login', { replace: true })
   }
@@ -41,57 +35,39 @@ export default function Layout({ children }) {
     {
       path: '/warehouses',
       label: 'Almacenes',
-      icon: Package,
-      options: [
-        { path: '/warehouses', label: 'Ver Almacenes' },
-        { path: '/warehouses/new', label: 'Nuevo Almacén' }
-      ]
+      icon: Package
     },
     {
       path: '/products',
       label: 'Productos',
-      icon: Box,
-      options: [
-        { path: '/products', label: 'Ver Productos' },
-        { path: '/products/new', label: 'Nuevo Producto' }
-      ]
+      icon: Box
     },
     {
       path: '/inventory-sheets',
       label: 'Hoja de Inventario',
-      icon: FileText,
-      options: [
-        { path: '/inventory-sheets', label: 'Ver Hojas' },
-        { path: '/inventory-sheets/new', label: 'Nueva Hoja' }
-      ]
+      icon: FileText
     },
     {
       path: '/entidades',
       label: 'Entidades',
-      icon: User,
-      options: [
-        { path: '/entidades', label: 'Ver Entidades' },
-        { path: '/entidades/new', label: 'Nueva Entidad' }
-      ]
+      icon: User
     },
     {
       path: '/reportes',
       label: 'Reportes',
-      icon: File,
-      options: []
+      icon: File
     }
   ]
 
   return (
     <>
       {isActive ? (
-        <div className="bg-gray-50 min-h-screen">
-          <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div className="bg-gray-50">
+          <header className="bg-white shadow-sm border-b">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between items-center h-16">
-                {/* Logo y Usuario */}
                 <div className="items-center space-x-4 flex">
-                  <div className='flex flex-col items-center justify-center'>
+                  <div className=' flex flex-col items-center justify-center'>
                     <Building2 className="h-8 w-8 text-blue-600" />
                     <p className="text-sm text-gray-500">
                       User: {user?.nameEntity || 'Admin'}
@@ -99,89 +75,114 @@ export default function Layout({ children }) {
                   </div>
                 </div>
 
-                {/* Navegación con NavigationMenu */}
-                <NavigationMenu className="hidden md:block">
-                  <NavigationMenuList>
+                <div className="flex items-center space-x-4">
+                  <nav className="hidden md:flex items-center space-x-4">
                     {navigationItems.map((item) => {
                       const Icon = item.icon
-                      const isActiveRoute = location.pathname.startsWith(item.path)
-                      
+                      const isActive = location.pathname === item.path
                       return (
-                        <NavigationMenuItem key={item.path}>
-                          {item.options && item.options.length > 0 ? (
-                            // Item con submenú
-                            <>
-                              <NavigationMenuTrigger
-                                className={cn(
-                                  "flex items-center gap-2",
-                                  isActiveRoute && "bg-accent text-accent-foreground"
-                                )}
-                              >
-                                <Icon className="h-4 w-4" />
-                                <span>{item.label}</span>
-                              </NavigationMenuTrigger>
-                              <NavigationMenuContent>
-                                <ul className="grid w-[200px] gap-2 p-2">
-                                  {item.options.map((option) => (
-                                    <li key={option.path}>
-                                      <NavigationMenuLink
-                                        onClick={() => navigate(option.path)}
-                                        className={cn(
-                                          "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground cursor-pointer",
-                                          location.pathname === option.path && "bg-accent text-accent-foreground"
-                                        )}
-                                      >
-                                        <div className="text-sm font-medium leading-none">
-                                          {option.label}
-                                        </div>
-                                      </NavigationMenuLink>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </NavigationMenuContent>
-                            </>
-                          ) : (
-                            // Item sin submenú
-                            <NavigationMenuLink
-                              onClick={() => navigate(item.path)}
-                              className={cn(
-                                navigationMenuTriggerStyle(),
-                                "cursor-pointer flex items-center gap-2",
-                                isActiveRoute && "bg-accent text-accent-foreground"
-                              )}
-                            >
-                              <Icon className="h-4 w-4" />
-                              <span>{item.label}</span>
-                            </NavigationMenuLink>
-                          )}
-                        </NavigationMenuItem>
+                        <Button
+                          key={item.path}
+                          variant={isActive ? 'default' : 'ghost'}
+                          onClick={() => navigate(item.path)}
+                          className="flex items-center space-x-2"
+                        >
+                          <Icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </Button>
                       )
                     })}
-                  </NavigationMenuList>
-                </NavigationMenu>
+                    
+                    {/* Botón Configuración con Popover */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          className="flex items-center space-x-2"
+                        >
+                          <Settings className="h-4 w-4" />
+                          <span>Configuración</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-56 p-2" align="end">
+                        <div className="space-y-1">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => navigate('/warehouses')}
+                          >
+                            <Package className="h-4 w-4 mr-2" />
+                            Almacén
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => navigate('/entidades')}
+                          >
+                            <User className="h-4 w-4 mr-2" />
+                            Entidades
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </nav>
 
-                {/* Navegación móvil simplificada */}
-                <div className="md:hidden flex items-center space-x-2">
-                  {navigationItems.map((item) => {
-                    const Icon = item.icon
-                    const isActiveRoute = location.pathname === item.path
-                    return (
-                      <Button
-                        key={item.path}
-                        variant={isActiveRoute ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => navigate(item.path)}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </Button>
-                    )
-                  })}
+                  {/* Navegación móvil simplificada */}
+                  <div className="md:hidden flex items-center space-x-2">
+                    {navigationItems.map((item) => {
+                      const Icon = item.icon
+                      const isActive = location.pathname === item.path
+                      return (
+                        <Button
+                          key={item.path}
+                          variant={isActive ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => navigate(item.path)}
+                        >
+                          <Icon className="h-4 w-4" />
+                        </Button>
+                      )
+                    })}
+                    
+                    {/* Botón Configuración Móvil con Popover */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-48 p-2" align="end">
+                        <div className="space-y-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start"
+                            onClick={() => navigate('/warehouses')}
+                          >
+                            <Package className="h-4 w-4 mr-2" />
+                            Almacén
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full justify-start"
+                            onClick={() => navigate('/entidades')}
+                          >
+                            <User className="h-4 w-4 mr-2" />
+                            Entidades
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 </div>
 
-                {/* Botón Logout */}
                 <Button variant="outline" onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
-                  <span className="hidden md:inline">Cerrar Sesión</span>
+                  Cerrar Sesión
                 </Button>
               </div>
             </div>
@@ -191,11 +192,8 @@ export default function Layout({ children }) {
             {children}
           </main>
         </div>
-      ) : (
-        <>{children}</>
-      )}
+      ) : (<>{children}</>)
+      }
     </>
   )
 }
-
-
