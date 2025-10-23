@@ -61,7 +61,7 @@ export default function Layout({ children }) {
                   <div className='flex flex-col items-center justify-center'>
                     <Building2 className="hidden h-8 w-8 text-blue-600 md:flex" />
                     <p className="text-sm text-gray-500">
-                      User: {user?.nameEntity || 'Admin'}
+                      Role: {user?.username || 'Admin'}
                     </p>
                   </div>
                 </div>
