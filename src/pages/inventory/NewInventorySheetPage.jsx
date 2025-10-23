@@ -162,15 +162,14 @@ export default function NewInventorySheetPage() {
         }
 
         // Agregar cada producto encontrado
-        successResults.forEach((result) => {
-          console.log('🚀 ~ handleAddMultiCodes ~ result:', result);
+        for (const result of successResults) {
           append({
             productId: result.product.barcode,
             quantity: 1,
             unit: result.product.unit,
             price: result.product.price,
           });
-        });
+        }
 
         // Actualizar toast de carga a éxito
         toast.update(loadingToastId, {
@@ -748,19 +747,23 @@ export default function NewInventorySheetPage() {
       </div>
 
       {/* 📷 Modal del Escáner de Códigos de Barras */}
-      <QrScannerModal
-        isOpen={qrScannerOpen}
-        title="Escanear Código de Barras"
-        description="Apunta la cámara hacia el código de barras del producto"
-        onScanSuccess={handleNewScanResult}
-        onScanError={(errorMessage) => {
-          // Solo loguear errores reales, ignorar "NotFoundException"
-          if (!errorMessage.includes('NotFoundException')) {
-            console.error('Error de escaneo:', errorMessage);
-          }
-        }}
-        onClose={() => setQrScannerOpen(false)}
-      />
+      {
+        qrScannerOpen && (
+          <QrScannerModal
+            isOpen={qrScannerOpen}
+            title="Escanear Código de Barras"
+            description="Apunta la cámara hacia el código de barras del producto"
+            onScanSuccess={handleNewScanResult}
+            onScanError={(errorMessage) => {
+              // Solo loguear errores reales, ignorar "NotFoundException"
+              if (!errorMessage.includes('NotFoundException')) {
+                console.error('Error de escaneo:', errorMessage);
+              }
+            }}
+            onClose={() => setQrScannerOpen(false)}
+          />
+        )
+      }
     </div>
   );
 }
