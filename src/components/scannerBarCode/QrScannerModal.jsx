@@ -45,6 +45,7 @@ export const QrScannerModal = ({
 
                 // Iniciar el escaneo continuo
                 await codeReader.decodeFromVideoDevice(
+                    { facingMode: { exact: "environment" } },
                     selectedDeviceId,
                     videoRef.current,
                     (result, error) => {
